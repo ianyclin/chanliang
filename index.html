@@ -194,8 +194,9 @@
   .dayh .cnt { font-size: 14px; color: var(--muted); font-weight: 700; margin-left: auto; margin-right: 6px; }
   .dayh .ev { padding: 0; border: 0; font-size: 14px; display: inline-flex; gap: 6px; }
   .dayh .ev .t { font-size: 12px; }
-  .day .item { min-height: 54px; padding: 6px 14px; cursor: default; }
-  .day .item:active { background: inherit; }
+  .day .item { min-height: 54px; padding: 6px 14px; }
+  .day .item.routine { pointer-events: none; }
+  .day .item.routine .mv { display: none; }
   .day .item .box { width: 30px; height: 30px; border-radius: 9px; border-width: 2px; }
   .day .item .box svg { width: 20px; height: 20px; }
   .day .item .label { font-size: 18px; }
@@ -270,7 +271,7 @@
     <button class="share" id="shareBtn">📤 分享給爸媽</button>
     <section>
       <h2>🗓️ 接下來每一天</h2>
-      <div class="legend">灰色的是每天固定的事；紅色日期是過期還沒做的。</div>
+      <div class="legend">提前做完可以直接勾。灰色的是每天固定的事；紅色日期是過期還沒做的。</div>
       <div id="planDays"></div>
     </section>
     <section id="eventsSec" style="display:none">
@@ -299,7 +300,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24f',
+  VERSION: '2026.10.24g',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -660,7 +661,7 @@ document.addEventListener('click', (e) => {
   if (opt) { applyMove(opt.dataset.id, opt.dataset.date); return; }
   if (e.target.closest('.cancel') || e.target.id === 'sheetbg') { $('#sheetbg').classList.remove('show'); return; }
   const row = e.target.closest('.item');
-  if (row && !row.closest('#planView')) toggle(row.dataset.id);   // 計畫頁只看不勾
+  if (row && !row.classList.contains('routine')) toggle(row.dataset.id);   // 計畫頁也能勾（提前做完）；灰色例行項目在計畫頁不勾
 });
 
 /* ---------- 改期 ---------- */
