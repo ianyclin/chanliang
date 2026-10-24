@@ -9,7 +9,6 @@
 <meta name="apple-mobile-web-app-title" content="今日清單">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#fff8ec">
-<meta http-equiv="Cache-Control" content="no-store">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -186,7 +185,7 @@
   .pd .dt.now { color: var(--accent-ink); font-weight: 800; }
   .addbtn { border: 0; background: #f3eee2; color: #6b6356; font-size: 15px; font-weight: 800; padding: 8px 14px; border-radius: 10px; margin-top: 8px; font-family: inherit; cursor: pointer; }
   .label .extra { display: inline-block; font-size: 13px; color: #1f6f8b; background: #e3f3f8; border-radius: 6px; padding: 1px 7px; margin-left: 6px; font-weight: 700; vertical-align: middle; }
-  .sheet input { width: 100%; font-size: 20px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; font-family: inherit; margin-bottom: 12px; box-sizing: border-box; }
+  .sheet input { -webkit-user-select: text; user-select: text; width: 100%; font-size: 20px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; font-family: inherit; margin-bottom: 12px; box-sizing: border-box; }
   .sheet .go { width: 100%; border: 0; background: var(--accent); color: #fff; font-size: 18px; font-weight: 800; padding: 14px; border-radius: 14px; font-family: inherit; cursor: pointer; }
 
   /* 計畫：按日期 */
@@ -305,7 +304,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24j',
+  VERSION: '2026.10.24k',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -341,6 +340,8 @@ const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const DEMO = params.get('demo') === '1';
 const SUBJECT_COLORS = ['國語', '數學', '社會', '自然', '英文', '小提琴'];
+const subjOrder = (s) => { const i = SUBJECT_COLORS.indexOf(s); return i < 0 ? SUBJECT_COLORS.length : i; };
+const byLabel = (a, b) => a.localeCompare(b, 'zh-Hant', { numeric: true });
 const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
 
 /* ---------- 小工具 ---------- */
@@ -357,9 +358,10 @@ function parseDate(s, ref) {
   if (!s) return null;
   s = String(s).trim();
   let m;
-  if ((m = s.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/))) return new Date(+m[1], +m[2] - 1, +m[3]);
-  if ((m = s.match(/^(\d{1,2})[/月](\d{1,2})/))) return new Date(ref.getFullYear(), +m[1] - 1, +m[2]);
-  const d = new Date(s); return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const mk = (y, mo, da) => { if (mo < 1 || mo > 12 || da < 1 || da > 31) return null; const d = new Date(y, mo - 1, da); return d.getMonth() === mo - 1 ? d : null; };
+  if ((m = s.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/))) return mk(+m[1], +m[2], +m[3]);
+  if ((m = s.match(/^(\d{1,2})[-/.月](\d{1,2})/))) return mk(ref.getFullYear(), +m[1], +m[2]);
+  return null;
 }
 function fmtDate(d, ref) {
   const diff = daysBetween(ref, d);
@@ -468,12 +470,17 @@ function renderSync() {
 
 /* ---------- 規則展開 ---------- */
 function weekdaysOf(s) {
-  s = String(s).replace(/[週周星期禮拜]/g, '');
+  s = String(s).trim();
   if (/每天|每日|天天|全部/.test(s)) return [0, 1, 2, 3, 4, 5, 6];
   const set = new Set();
-  if (/平日/.test(s)) [1, 2, 3, 4, 5].forEach((d) => set.add(d));
-  if (/週末|假日/.test(s)) [0, 6].forEach((d) => set.add(d));
-  for (const ch of s) { const i = WEEK_CN.indexOf(ch); if (i >= 0) set.add(i); if (ch === '天') set.add(0); }
+  if (/平日|上課日/.test(s)) [1, 2, 3, 4, 5].forEach((d) => set.add(d));
+  if (/週末|周末|假日/.test(s)) [0, 6].forEach((d) => set.add(d));
+  if (set.size) return [...set];
+  s = s.replace(/[週周星期禮拜]/g, '');
+  const idx = (ch) => (ch === '天' ? 0 : WEEK_CN.indexOf(ch));
+  const rng = s.match(/^([一二三四五六日天])\s*[～~至到\-－]\s*([一二三四五六日天])$/);   // 一～五、一至五
+  if (rng) { let a = idx(rng[1]) || 7, b = idx(rng[2]) || 7; if (a > b) [a, b] = [b, a]; for (let i = a; i <= b; i++) set.add(i % 7); return [...set]; }
+  for (const ch of s) { const i = idx(ch); if (i >= 0) set.add(i); }
   return [...set];
 }
 function splitRule(rule) { return String(rule).split(/[＋+；;]/).map((x) => x.trim()).filter(Boolean); }
@@ -481,17 +488,35 @@ function masterId(r) { return `m:${r['科目']}|${r['項目']}|${r['子項']}`; 
 let MOVES = store('moves') || {};   // iPad 上的改期：{ id: { date, from, ts } }
 let EXTRAS = store('extras') || [];  // iPad 上新增的項目：[{ 科目, 項目:'新增', 子項, 目標日, ts }]
 // 正式計畫裡已經有同科目同名稱的，就把 iPad 上新增的那筆隱藏
+function rowName(r) { return r['科目'] + '|' + [r['項目'], r['子項']].filter(Boolean).join(' '); }
 function masterRows(data) {
-  const names = new Set(data.master.map((r) => r['科目'] + '|' + [r['項目'], r['子項']].filter(Boolean).join(' ')));
+  const names = new Set(data.master.map(rowName));
   return data.master.concat(EXTRAS.filter((x) => !names.has(x['科目'] + '|' + x['子項'])).map((x) => ({ ...x, 狀態: '已排', 備註: '', _extra: true })));
 }
+// 正式計畫補進了 iPad 上新增的同名項目：把勾選狀態搬過去，然後把那筆新增拿掉
+function migrateExtras(data) {
+  const byName = {}; for (const r of data.master) byName[rowName(r)] = r;
+  let changed = false;
+  EXTRAS = EXTRAS.filter((x) => {
+    const off = byName[x['科目'] + '|' + x['子項']]; if (!off) return true;
+    const eid = masterId({ ...x }), oid = masterId(off), ls = localState();
+    if (ls[eid] && !ls[oid]) { ls[oid] = ls[eid]; STATE[oid] = ls[eid]; }
+    delete ls[eid]; delete STATE[eid]; delete MOVES[eid]; store('done-state', ls); changed = true; return false;
+  });
+  if (changed) { store('extras', EXTRAS); store('moves', MOVES); }
+}
+function sameDay(a, b, today) { const x = parseDate(a, today), y = parseDate(b, today); return !!x && !!y && ymd(x) === ymd(y); }
+function activeMove(r, today) {
+  const mv = MOVES[masterId(r)]; if (!mv) return null;
+  if (!sameDay(mv.from, r['目標日'], today)) return null;   // 正式計畫已經改過日期，iPad 上的改期作廢
+  return parseDate(mv.date, today) ? mv : null;
+}
 function effDate(r, today) {
-  const mv = MOVES[masterId(r)];
-  const d = mv ? parseDate(mv.date, today) : null;
-  return d || parseDate(r['目標日'], today);
+  const mv = activeMove(r, today);
+  return mv ? parseDate(mv.date, today) : parseDate(r['目標日'], today);
 }
 function masterItem(r, today) {
-  const t = effDate(r, today), mv = MOVES[masterId(r)];
+  const t = effDate(r, today), mv = activeMove(r, today);
   return { id: masterId(r), subject: r['科目'], label: r._extra ? r['子項'] : [r['項目'], r['子項']].filter(Boolean).join(' '), note: r['備註'] || '', sub: r['備註'] || '', date: t ? ymd(t) : '', orig: r['目標日'] || '', moved: !!(mv && t), extra: !!r._extra, kind: 'master', sheetDone: r['狀態'] === '完成' };
 }
 
@@ -514,7 +539,7 @@ function itemsForDate(data, d, today) {
     const diff = daysBetween(d, t);
     if (diff >= 1 && diff <= CONFIG.EXAM_REVIEW_DAYS) out.push({ id: `e:${ds}:${e['事件']}`, subject: e['科目'] || '複習', label: `✏️ 複習：${e['事件']}`, sub: diff === 1 ? '明天考！' : `${diff} 天後考`, date: ds, kind: 'exam' });
   }
-  const order = (a, b) => (SUBJECT_COLORS.indexOf(a.subject) - SUBJECT_COLORS.indexOf(b.subject)) || a.label.localeCompare(b.label, 'zh-Hant');
+  const order = (a, b) => (subjOrder(a.subject) - subjOrder(b.subject)) || byLabel(a.label, b.label);
   out.sort((a, b) => (a.routine ? 1 : 0) - (b.routine ? 1 : 0) || order(a, b));
   return out;
 }
@@ -537,7 +562,7 @@ function buildItems(data, today) {
     const it = masterItem(r, today); it.sub = fmtDate(d, today) + (it.note ? '・' + it.note : '');
     backlog.push(it);
   }
-  backlog.sort((a, b) => a.date.localeCompare(b.date) || SUBJECT_COLORS.indexOf(a.subject) - SUBJECT_COLORS.indexOf(b.subject));
+  backlog.sort((a, b) => a.date.localeCompare(b.date) || subjOrder(a.subject) - subjOrder(b.subject) || byLabel(a.label, b.label));
   return { items, backlog };
 }
 
@@ -593,13 +618,13 @@ function render() {
     const st = STATE[masterId(r)]; const done = st ? st.done : r['狀態'] === '完成';
     const t = effDate(r, d);
     subj[s].total++; if (done) subj[s].done++;
-    subj[s].rows.push({ name: (r._extra ? r['子項'] + '（新增）' : [r['項目'], r['子項']].filter(Boolean).join(' ')) + (MOVES[masterId(r)] ? '（改過）' : ''), done, date: t, ds: t ? ymd(t) : '' });
+    subj[s].rows.push({ name: (r._extra ? r['子項'] + '（新增）' : [r['項目'], r['子項']].filter(Boolean).join(' ')) + (activeMove(r, d) ? '（改過）' : ''), done, date: t, ds: t ? ymd(t) : '' });
   }
-  const keys = Object.keys(subj).sort((a, b) => SUBJECT_COLORS.indexOf(a) - SUBJECT_COLORS.indexOf(b));
+  const keys = Object.keys(subj).sort((a, b) => subjOrder(a) - subjOrder(b));
   $('#progressSec').style.display = keys.length ? '' : 'none';
   $('#progress').innerHTML = keys.map((s) => {
     const p = subj[s], pct = Math.round((p.done / p.total) * 100);
-    p.rows.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.ds.localeCompare(b.ds));
+    p.rows.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.ds.localeCompare(b.ds) || byLabel(a.name, b.name));
     const det = p.rows.map((r) => {
       const cls = !r.ds ? '' : r.ds < todayStr && !r.done ? 'late' : r.ds === todayStr ? 'now' : '';
       return `<div class="pd ${r.done ? 'done' : ''}"><span class="mk">${r.done ? '✓' : ''}</span><span class="nm">${esc(r.name)}</span><span class="dt ${cls}">${r.done ? '完成' : r.date ? fmtDate(r.date, d) : '未排'}</span></div>`;
@@ -609,7 +634,7 @@ function render() {
 
   // 計畫：按日期（從今天到最後一個排程日，最多 45 天）
   let last = addDays(d, 7);
-  for (const r of DATA.master) { const t = parseDate(r['目標日'], d); if (t && t > last) last = t; }
+  for (const r of masterRows(DATA)) { const t = effDate(r, d); if (t && t > last) last = t; }
   for (const e of evs) { if (e.d > last && daysBetween(d, e.d) <= 45) last = e.d; }
   if (daysBetween(d, last) > 45) last = addDays(d, 45);
   const days = [];
@@ -656,7 +681,7 @@ function toggle(id) {
   const next = !isDone(it); const ts = new Date().toISOString();
   STATE[it.id] = { done: next, ts };
   const ls = localState(); ls[it.id] = { done: next, ts }; store('done-state', ls);
-  enqueue({ ts, date: ymd(TODAY), id: it.id, action: next ? '完成' : '取消', name: `${it.subject}｜${it.label}` });
+  if (CONFIG.SCRIPT_URL) enqueue({ ts, date: ymd(TODAY), id: it.id, action: next ? '完成' : '取消', name: `${it.subject}｜${it.label}` });
   if (navigator.vibrate) navigator.vibrate(next ? 30 : 10);
   justToggled = true; render(); justToggled = false;
 }
@@ -683,7 +708,7 @@ function examsSorted() { return DATA.events.map((e) => ({ ...e, d: parseDate(e['
 let PENDING_ADD = null;
 function openAdd(subject) {
   $('#sheet').innerHTML = `<h3>新增${esc(subject)}的項目</h3><div class="what">例如：評量 第 7 回、習作 p.20</div><input id="addName" placeholder="要做什麼？" maxlength="40"><button class="go">下一步：選哪一天</button><button class="cancel" style="margin-top:8px">不新增</button>`;
-  PENDING_ADD = { subject }; $('#sheetbg').classList.add('show'); setTimeout(() => $('#addName').focus(), 50);
+  PENDING_ADD = { subject }; $('#sheetbg').classList.add('show'); $('#addName').focus();
 }
 function submitAdd() {
   const name = ($('#addName').value || '').trim(); if (!name) { $('#addName').focus(); return; }
@@ -712,11 +737,16 @@ function openMove(id, draft) {
 }
 function applyMove(id, date) {
   if (id.startsWith('new:')) {
-    if (date && PENDING_ADD) { EXTRAS.push({ 科目: PENDING_ADD.subject, 項目: '新增', 子項: PENDING_ADD.name, 目標日: date, ts: new Date().toISOString() }); store('extras', EXTRAS); }
+    if (date && PENDING_ADD) {
+      const dup = EXTRAS.find((x) => x['科目'] === PENDING_ADD.subject && x['子項'] === PENDING_ADD.name);
+      if (dup) dup['目標日'] = date; else EXTRAS.push({ 科目: PENDING_ADD.subject, 項目: '新增', 子項: PENDING_ADD.name, 目標日: date, ts: new Date().toISOString() });
+      store('extras', EXTRAS);
+    }
     PENDING_ADD = null; $('#sheetbg').classList.remove('show'); render(); return;
   }
   const it = ALL_ITEMS.find((x) => x.id === id);
   if (!date) delete MOVES[id];
+  else if (it && sameDay(date, it.orig, TODAY)) delete MOVES[id];   // 改回原本的日期就等於沒改
   else if (date !== (it && it.date)) MOVES[id] = { date, from: it ? it.orig : '', ts: new Date().toISOString() };
   store('moves', MOVES); $('#sheetbg').classList.remove('show'); render();
 }
@@ -762,8 +792,15 @@ function party() {
 $('#partyClose').onclick = () => $('#party').classList.remove('show');
 
 /* ---------- 載入流程 ---------- */
+let loading = false;
 async function refresh() {
+  if (loading) return; loading = true;
   const btn = $('#refreshBtn'); btn.classList.add('spin');
+  try { await refreshInner(); } finally { loading = false; btn.classList.remove('spin'); }
+}
+async function refreshInner() {
+  const btn = $('#refreshBtn');
+  const srcName = CONFIG.READ_MODE === 'repo' ? '網路' : 'Google Sheet';
   TODAY = todayDate();
   if (!configured()) {
     $('#notice').innerHTML = `<div class="notice">還沒設定 Google Sheet。請打開 <code>index.html</code>，在 CONFIG 填入 <code>SHEET_ID</code>（或 <code>PUBLISHED_ID</code>）。<br>想先看看長什麼樣子，可以在網址後面加 <code>?demo=1</code>。</div>`;
@@ -775,13 +812,13 @@ async function refresh() {
     DATA = await loadAll(); $('#notice').innerHTML = '';
   } catch (e) {
     const cache = store('data-cache');
-    if (cache) { DATA = { ...cache, stale: true }; $('#notice').innerHTML = `<div class="notice">現在連不上 Google Sheet，先顯示上次的資料。<br><small>${esc(e.message)}</small></div>`; }
-    else { $('#notice').innerHTML = `<div class="notice">讀不到資料：${esc(e.message)}</div>`; $('#todayList').innerHTML = '<div class="empty">請檢查網路或 Sheet 設定</div>'; btn.classList.remove('spin'); return; }
+    if (cache) { DATA = { ...cache, stale: true }; $('#notice').innerHTML = `<div class="notice">現在沒有${srcName}，先顯示上次的資料。</div>`; console.warn(e); }
+    else { $('#notice').innerHTML = `<div class="notice">現在沒有${srcName}，讀不到資料。<br><small>${esc(e.message)}</small></div>`; $('#todayList').innerHTML = '<div class="empty">等有網路再按右上角重新整理</div>'; return; }
   }
   STATE = mergedState(DATA.log);
+  migrateExtras(DATA);
   render();
   flushQueue();
-  btn.classList.remove('spin');
 }
 $('#refreshBtn').onclick = refresh;
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });
