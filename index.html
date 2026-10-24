@@ -216,14 +216,13 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24b',
+  VERSION: '2026.10.24c',
 
-  // 讀取方式 'published'：Sheet「檔案 → 分享 → 發布到網路」→ 整份文件 → 網頁。
-  //   然後把網址裡 /d/e/ 後面那串（2PACX-...）貼到 PUBLISHED_ID。
-  //   每個分頁需要 gid（看網址 #gid=數字），填到 GIDS。
-  // 讀取方式 'gviz'：只要把 Sheet「共用」設為「知道連結的任何人可檢視」，
-  //   把網址 /d/ 後面那串貼到 SHEET_ID 就好，不需要 gid（用分頁名稱）。推薦。
-  READ_MODE: 'gviz',
+  // 讀取方式：
+  //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
+  //   'gviz'：讀 Google Sheet，Sheet 要設成「知道連結的任何人可檢視」，填 SHEET_ID
+  //   'published'：Sheet「發布到網路」，填 PUBLISHED_ID 和各分頁 gid
+  READ_MODE: 'repo',
   SHEET_ID: '',            // 例：1AbCdEfG...（gviz 模式用）
   PUBLISHED_ID: '',        // 例：2PACX-1v...（published 模式用）
   GIDS: { '進度母表': '0', '週規則': '', '大事記': '', '完成紀錄': '' },
@@ -308,14 +307,14 @@ function rowsToObjects(rows) {
 /* ---------- 讀資料 ---------- */
 function tabUrl(tab) {
   const bust = `t=${Date.now()}`;
-  if (DEMO) return `sheet-template/${encodeURIComponent(tab)}.csv?${bust}`;
+  if (DEMO || CONFIG.READ_MODE === 'repo') return `data/${encodeURIComponent(tab)}.csv?${bust}`;
   if (CONFIG.READ_MODE === 'published') {
     return `https://docs.google.com/spreadsheets/d/e/${CONFIG.PUBLISHED_ID}/pub?gid=${CONFIG.GIDS[tab] || 0}&single=true&output=csv&${bust}`;
   }
   return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}&${bust}`;
 }
 function configured() {
-  if (DEMO) return true;
+  if (DEMO || CONFIG.READ_MODE === 'repo') return true;
   return CONFIG.READ_MODE === 'published' ? !!CONFIG.PUBLISHED_ID : !!CONFIG.SHEET_ID;
 }
 async function fetchTab(tab) {
@@ -369,7 +368,7 @@ async function flushQueue() {
 function renderSync() {
   const q = store('queue') || []; const el = $('#syncStatus');
   if (DEMO) { el.textContent = '示範模式'; el.className = 'status'; return; }
-  if (!CONFIG.SCRIPT_URL) { el.textContent = '只存在這台 iPad'; el.className = 'status'; return; }
+  if (!CONFIG.SCRIPT_URL) { el.textContent = '勾選記在這台 iPad'; el.className = 'status'; return; }
   if (q.length) { el.textContent = `還有 ${q.length} 筆沒送出`; el.className = 'status warn'; }
   else { el.textContent = '已同步'; el.className = 'status ok'; }
 }

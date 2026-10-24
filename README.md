@@ -1,14 +1,14 @@
 # 展諒課業 — 小孩版今日清單
 
-iPad 打開就看到「今天要做什麼」，勾完有回饋；家長在 Google Sheet 改計畫，iPad 下次打開自動反映。
-單檔 `index.html`，無 build step，部署在 GitHub Pages。
+iPad 打開就看到「今天要做什麼」，勾完有回饋。計畫資料放在 `data/` 的四個 CSV，改完推上 `main`，iPad 下次打開自動反映。
+單檔 `index.html`，無 build step，部署在 GitHub Pages：https://ianyclin.github.io/chanliang/
 
-- 先看長什麼樣子：`https://<帳號>.github.io/chanliang/?demo=1`（用 `sheet-template/` 的示範資料）
-- 測試某一天：網址加 `&date=2026-10-26`
+- 測試某一天：網址加 `?date=2026-10-26`
+- 勾選紀錄存在 iPad 本機（localStorage）。想寫回 Google Sheet 再看第三節。
 
-## 一、建 Google Sheet
+## 一、資料檔（`data/` 四個 CSV）
 
-開一份 Sheet 叫「展諒課業」，新增四個分頁（名稱要一模一樣）。`sheet-template/` 裡有四個 CSV 可以直接「檔案 → 匯入 → 插入新工作表」。
+預設模式 `READ_MODE: 'repo'` 直接讀這四個檔。想改用 Google Sheet 當資料來源，開一份 Sheet 叫「展諒課業」，用這四個 CSV「檔案 → 匯入 → 插入新工作表」建四個分頁，再看第二節。
 
 ### 1. `進度母表`（有明確目標日的項目）
 | 科目 | 項目 | 子項 | 目標日 | 狀態 | 備註 |
@@ -46,7 +46,7 @@ iPad 打開就看到「今天要做什麼」，勾完有回饋；家長在 Googl
 由 Apps Script 自動寫入，不用手動填（第一次 Apps Script 會自己建）。
 想「取消」小孩的勾，直接刪那一列即可。
 
-## 二、讓網頁讀得到 Sheet（二選一）
+## 二、（選用）改用 Google Sheet 當資料來源（二選一）
 
 **方式 A（推薦）**：Sheet 右上「共用」→ 一般存取權改成「知道連結的任何人：檢視者」。
 把網址 `https://docs.google.com/spreadsheets/d/【這一串】/edit` 中間那串貼到 `index.html` 的 `CONFIG.SHEET_ID`。
@@ -55,7 +55,7 @@ iPad 打開就看到「今天要做什麼」，勾完有回饋；家長在 Googl
 `READ_MODE` 改成 `'published'`，並把四個分頁的 gid（網址 `#gid=數字`）填進 `CONFIG.GIDS`。
 （Google 對發布的 CSV 有約 5 分鐘快取。）
 
-## 三、完成紀錄寫回 Sheet（Apps Script）
+## 三、（選用）完成紀錄寫回 Google Sheet（Apps Script）
 
 1. Sheet → 擴充功能 → Apps Script，把 `apps-script/Code.gs` 內容整個貼進去，存檔。
 2. 部署 → 新增部署作業 → 網頁應用程式：執行身分「我」、存取權「任何人」。第一次會要求授權。
