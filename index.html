@@ -208,6 +208,9 @@
   .day .item.routine .label { font-size: 16px; }
   .day .empty { padding: 14px; font-size: 16px; }
   .legend { color: var(--muted); font-size: 14px; font-weight: 600; margin: 0 6px 10px; }
+  .day.quiet { margin-bottom: 10px; }
+  .day.quiet .dayh .dn { font-size: 17px; }
+  .quietline { padding: 10px 16px; color: #b0a994; font-size: 15px; font-weight: 600; }
 
   /* 改期 */
   .mv { flex: none; border: 0; background: #f3eee2; color: #6b6356; font-size: 14px; font-weight: 800; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-family: inherit; }
@@ -304,7 +307,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24k',
+  VERSION: '2026.10.24l',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -646,14 +649,16 @@ function render() {
     const dd = addDays(d, i), ds = ymd(dd);
     const list = itemsForDate(DATA, dd, d);
     const ev = evs.filter((e) => ymd(e.d) === ds);
-    if (!list.length && !ev.length) continue;
-    if (list.every((x) => x.routine) && !ev.length && i > 0) continue; // 只有例行事項的日子不佔版面
-    days.push({ d: dd, list, ev, late: false });
+    days.push({ d: dd, list, ev, late: false, quiet: i > 0 && list.every((x) => x.routine) });
   }
   $('#planDays').innerHTML = days.map((day) => {
     const ds = ymd(day.d), isToday = ds === todayStr;
     const real = day.list.filter((x) => !x.routine), dn = real.filter(isDone).length;
     const head = `<div class="dayh"><span class="dn ${isToday ? 'today' : day.late ? 'late' : ''}">${isToday ? '今天 ' : day.late ? '過期 ' : ''}${day.d.getMonth() + 1}/${day.d.getDate()}</span><span class="dw">星期${WEEK_CN[day.d.getDay()]}</span>${(day.ev || []).map((e) => `<span class="ev">${esc(e['事件'])}${eventTag(e)}</span>`).join('')}${real.length ? `<span class="cnt">${dn}/${real.length}</span>` : ''}</div>`;
+    if (day.quiet) {
+      const routine = day.list.map((x) => esc(x.label)).join('、');
+      return `<div class="day quiet">${head}<div class="card"><div class="quietline">沒有排功課${routine ? `・只有 ${routine}` : ''}</div></div></div>`;
+    }
     const body = day.list.length ? day.list.map((it) => itemHTML(it, { movable: true })).join('') : '<div class="empty">沒有排功課</div>';
     return `<div class="day">${head}<div class="card">${body}</div></div>`;
   }).join('') || '<div class="card"><div class="empty">還沒有排任何計畫</div></div>';
