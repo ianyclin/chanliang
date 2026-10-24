@@ -314,7 +314,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.25a',
+  VERSION: '2026.10.25b',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -352,6 +352,12 @@ const DEMO = params.get('demo') === '1';
 const SUBJECT_COLORS = ['國語', '數學', '社會', '自然', '英文', '小提琴'];
 const subjOrder = (s) => { const i = SUBJECT_COLORS.indexOf(s); return i < 0 ? SUBJECT_COLORS.length : i; };
 const byLabel = (a, b) => a.localeCompare(b, 'zh-Hant', { numeric: true });
+// 同一科內的順序：有頁數的照頁數，沒有頁數的排後面，「錯誤訂正」永遠最後
+const pageOf = (t) => { const m = String(t).match(/p\.?\s*(\d+)/i); return m ? +m[1] : null; };
+const byLabelPage = (a, b) => {
+  const fix = (t) => (/錯誤訂正/.test(t) ? 1 : 0), pa = pageOf(a), pb = pageOf(b);
+  return fix(a) - fix(b) || (pa !== null && pb !== null ? pa - pb : pa !== null ? -1 : pb !== null ? 1 : 0) || byLabel(a, b);
+};
 const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
 
 /* ---------- 小工具 ---------- */
@@ -550,7 +556,7 @@ function itemsForDate(data, d, today) {
     const diff = daysBetween(d, t);
     if (diff >= 1 && diff <= CONFIG.EXAM_REVIEW_DAYS) out.push({ id: `e:${ds}:${e['事件']}`, subject: e['科目'] || '複習', label: `✏️ 複習：${e['事件']}`, sub: diff === 1 ? '明天考！' : `${diff} 天後考`, date: ds, kind: 'exam' });
   }
-  const order = (a, b) => (subjOrder(a.subject) - subjOrder(b.subject)) || byLabel(a.label, b.label);
+  const order = (a, b) => (subjOrder(a.subject) - subjOrder(b.subject)) || byLabelPage(a.label, b.label);
   out.sort((a, b) => (a.routine ? 1 : 0) - (b.routine ? 1 : 0) || order(a, b));
   return out;
 }
@@ -573,7 +579,7 @@ function buildItems(data, today) {
     const it = masterItem(r, today); it.sub = fmtDate(d, today) + (it.note ? '・' + it.note : '');
     backlog.push(it);
   }
-  backlog.sort((a, b) => a.date.localeCompare(b.date) || subjOrder(a.subject) - subjOrder(b.subject) || byLabel(a.label, b.label));
+  backlog.sort((a, b) => a.date.localeCompare(b.date) || subjOrder(a.subject) - subjOrder(b.subject) || byLabelPage(a.label, b.label));
   return { items, backlog };
 }
 
@@ -635,7 +641,7 @@ function render() {
   $('#progressSec').style.display = keys.length ? '' : 'none';
   $('#progress').innerHTML = keys.map((s) => {
     const p = subj[s], pct = Math.round((p.done / p.total) * 100);
-    p.rows.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.ds.localeCompare(b.ds) || byLabel(a.name, b.name));
+    p.rows.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.ds.localeCompare(b.ds) || byLabelPage(a.name, b.name));
     const det = p.rows.map((r) => {
       const cls = !r.ds ? '' : r.ds < todayStr && !r.done ? 'late' : r.ds === todayStr ? 'now' : '';
       return `<div class="pd ${r.done ? 'done' : ''}"><span class="mk">${r.done ? '✓' : ''}</span><span class="nm">${esc(r.name)}</span><span class="dt ${cls}">${r.done ? '完成' : r.date ? fmtDate(r.date, d) : '未排'}</span></div>`;
