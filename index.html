@@ -305,7 +305,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24h',
+  VERSION: '2026.10.24i',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -664,7 +664,7 @@ document.addEventListener('click', (e) => {
   const tab = e.target.closest('.tab');
   if (tab) { showView(tab.dataset.view); return; }
   const prow = e.target.closest('.prow');
-  if (prow) { const s = prow.dataset.subj; OPEN_SUBJ.has(s) ? OPEN_SUBJ.delete(s) : OPEN_SUBJ.add(s); store('open-subj', [...OPEN_SUBJ]); render(); return; }
+  if (prow) { const s = prow.dataset.subj; const was = OPEN_SUBJ.has(s); OPEN_SUBJ.clear(); if (!was) OPEN_SUBJ.add(s); store('open-subj', [...OPEN_SUBJ]); render(); return; }   // 一次只展開一科
   const mv = e.target.closest('.mv');
   if (mv) { e.stopPropagation(); openMove(mv.dataset.move); return; }
   const ad = e.target.closest('.addbtn');
