@@ -130,6 +130,7 @@
   .ev .d { color: var(--muted); font-size: 15px; min-width: 92px; font-variant-numeric: tabular-nums; }
   .ev .t { font-size: 13px; border-radius: 8px; padding: 2px 8px; background: #eee; color: #555; }
   .ev .t.exam { background: #ffe3e3; color: #b32; }
+  .ev .t.off { background: #e6f7ec; color: #2e8b57; }
 
   /* 底部 */
   footer { margin-top: 24px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.8; }
@@ -215,7 +216,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24a',
+  VERSION: '2026.10.24b',
 
   // 讀取方式 'published'：Sheet「檔案 → 分享 → 發布到網路」→ 整份文件 → 網頁。
   //   然後把網址裡 /d/e/ 後面那串（2PACX-...）貼到 PUBLISHED_ID。
@@ -480,7 +481,7 @@ function render() {
   // 近期大事
   const evs = DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], d) })).filter((e) => e.d && daysBetween(d, e.d) >= 0 && daysBetween(d, e.d) <= CONFIG.EVENTS_AHEAD_DAYS).sort((a, b) => a.d - b.d);
   $('#eventsSec').style.display = evs.length ? '' : 'none';
-  $('#events').innerHTML = evs.map((e) => `<div class="ev"><span class="d">${esc(fmtDate(e.d, d))}</span><span>${esc(e['事件'])}</span><span class="t ${(e['類型'] || '').indexOf('考') >= 0 ? 'exam' : ''}">${esc(e['類型'] || '')}</span></div>`).join('');
+  $('#events').innerHTML = evs.map((e) => `<div class="ev"><span class="d">${esc(fmtDate(e.d, d))}</span><span>${esc(e['事件'])}</span><span class="t ${(e['類型'] || '').indexOf('考') >= 0 ? 'exam' : /假/.test(e['類型'] || '') ? 'off' : ''}">${esc(e['類型'] || '')}</span></div>`).join('');
 
   // 慶祝（每天一次）
   if (all && store('celebrated') !== ymd(d) && justToggled) { store('celebrated', ymd(d)); party(); }
