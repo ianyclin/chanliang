@@ -18,7 +18,7 @@
     --ink: #2b2a33;
     --muted: #7a7788;
     --line: #efe6d3;
-    --accent: #ff8a3d;
+    --accent: #e9731f;
     --accent-ink: #7a3a0c;
     --ok: #3cb371;
     --ok-bg: #e6f7ec;
@@ -27,13 +27,13 @@
     --shadow: 0 4px 16px rgba(80, 60, 20, .08);
     --radius: 22px;
     --row-h: 72px;
-    --s-國語: #ff7b7b;
-    --s-數學: #4f9dff;
-    --s-社會: #f6b73c;
-    --s-自然: #45c58a;
-    --s-英文: #9b7bff;
-    --s-小提琴: #e07bbf;
-    --s-其他: #a0a0b0;
+    --s-國語: #e04b4b;
+    --s-數學: #2a74d6;
+    --s-社會: #c4820a;
+    --s-自然: #1f9a63;
+    --s-英文: #7352d6;
+    --s-小提琴: #c04e98;
+    --s-其他: #767585;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
@@ -94,7 +94,8 @@
     width: 44px; height: 44px; border-radius: 14px; border: 3px solid #cfc6b4; flex: none;
     display: grid; place-items: center; background: #fff; transition: all .2s;
   }
-  .item.done .box { background: var(--ok); border-color: var(--ok); animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
+  .item.done .box { background: var(--ok); border-color: var(--ok); }
+  .item.just .box { animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
   .box svg { width: 28px; height: 28px; opacity: 0; transform: scale(.4); transition: all .2s; }
   .item.done .box svg { opacity: 1; transform: scale(1); }
   @keyframes pop { 0% { transform: scale(.7); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
@@ -178,7 +179,7 @@
   .pd:last-child { border-bottom: 0; }
   .pd .mk { width: 24px; height: 24px; border-radius: 8px; border: 2px solid #d8d0bd; flex: none; display: grid; place-items: center; font-size: 15px; color: #fff; }
   .pd.done .mk { background: var(--ok); border-color: var(--ok); }
-  .pd.done .nm { color: #9aa; text-decoration: line-through; }
+  .pd.done .nm { color: #7d7d8c; text-decoration: line-through; }
   .pd .nm { flex: 1; }
   .pd .dt { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .pd .dt.late { color: var(--warn); font-weight: 800; }
@@ -198,7 +199,7 @@
   .dayh .cnt { font-size: 14px; color: var(--muted); font-weight: 700; margin-left: auto; margin-right: 6px; }
   .dayh .ev { padding: 0; border: 0; font-size: 14px; display: inline-flex; gap: 6px; }
   .dayh .ev .t { font-size: 12px; }
-  .day .item { min-height: 54px; padding: 6px 14px; }
+  .day .item { min-height: 60px; padding: 6px 14px; }
   .day .item.routine { pointer-events: none; }
   .day .item.routine .mv { display: none; }
   .day .item .box { width: 30px; height: 30px; border-radius: 9px; border-width: 2px; }
@@ -208,12 +209,15 @@
   .day .item.routine .label { font-size: 16px; }
   .day .empty { padding: 14px; font-size: 16px; }
   .legend { color: var(--muted); font-size: 14px; font-weight: 600; margin: 0 6px 10px; }
+  .pastbtn { display: block; width: 100%; border: 0; background: transparent; color: var(--muted); font-size: 16px; font-weight: 800; padding: 10px; font-family: inherit; cursor: pointer; }
+  #pastDays { display: none; } #pastDays.on { display: block; }
+  #pastDays .day { opacity: .75; }
   .day.quiet { margin-bottom: 10px; }
   .day.quiet .dayh .dn { font-size: 17px; }
   .quietline { padding: 10px 16px; color: #b0a994; font-size: 15px; font-weight: 600; }
 
   /* 改期 */
-  .mv { flex: none; border: 0; background: #f3eee2; color: #6b6356; font-size: 14px; font-weight: 800; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-family: inherit; }
+  .mv { flex: none; border: 0; background: #f3eee2; color: #6b6356; font-size: 15px; font-weight: 800; min-height: 44px; min-width: 68px; padding: 0 14px; border-radius: 12px; cursor: pointer; font-family: inherit; }
   .mv:active { background: #e8e0cc; }
   .label .moved { display: inline-block; font-size: 13px; color: #a05a00; background: #fff1dc; border-radius: 6px; padding: 1px 7px; margin-left: 6px; font-weight: 700; vertical-align: middle; }
   .sheetbg { position: fixed; inset: 0; background: rgba(40,30,10,.35); display: none; z-index: 40; align-items: flex-end; justify-content: center; }
@@ -229,7 +233,8 @@
   .dayopt .load { font-size: 14px; color: var(--muted); font-weight: 800; white-space: nowrap; }
   .dayopt .load.heavy { color: var(--warn); }
   .dayopt.back { border-style: dashed; color: var(--muted); }
-  .sheet .cancel { width: 100%; border: 0; background: #eee; font-size: 18px; font-weight: 800; padding: 14px; border-radius: 14px; margin-top: 6px; font-family: inherit; cursor: pointer; }
+  .sheet .cancel { position: sticky; bottom: 0; width: 100%; border: 0; background: #e6e2d8; font-size: 18px; font-weight: 800; padding: 14px; border-radius: 14px; margin-top: 6px; font-family: inherit; cursor: pointer; box-shadow: 0 -6px 14px rgba(255,255,255,.9); }
+  .dayopt.del { border-style: dashed; border-color: #f0b4b4; color: var(--warn); }
   .share { display: block; width: 100%; border: 0; background: #fff; color: var(--accent-ink); font-size: 18px; font-weight: 800; padding: 16px; border-radius: 16px; box-shadow: var(--shadow); font-family: inherit; cursor: pointer; margin: 0 0 16px; }
 
   @media (max-width: 420px) {
@@ -279,6 +284,8 @@
     <section>
       <h2>🗓️ 接下來每一天</h2>
       <div class="legend">提前做完可以直接勾。灰色的是每天固定的事；紅色日期是過期還沒做的。</div>
+      <button class="pastbtn" id="pastBtn">▸ 看之前 7 天</button>
+      <div id="pastDays"></div>
       <div id="planDays"></div>
     </section>
     <section id="eventsSec" style="display:none">
@@ -307,7 +314,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24l',
+  VERSION: '2026.10.25a',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -530,7 +537,8 @@ function itemsForDate(data, d, today) {
   const ds = ymd(d), wd = d.getDay(), out = [];
   for (const r of data.weekly) {
     if (!weekdaysOf(r['星期']).includes(wd)) continue;
-    for (const part of splitRule(r['規則'])) out.push({ id: `w:${ds}:${r['科目']}:${part}`, subject: r['科目'], label: part, sub: '', date: ds, kind: 'weekly', routine: isRoutine(r) });
+    const optional = /^(是|yes|y)$/i.test(r['選做'] || '') || /想做再做|選做/.test(r['規則']);
+    for (const part of splitRule(r['規則'])) out.push({ id: `w:${ds}:${r['科目']}:${part}`, subject: r['科目'], label: part, sub: '', date: ds, kind: 'weekly', routine: isRoutine(r), optional });
   }
   for (const r of masterRows(data)) {
     const t = effDate(r, today); if (!t || ymd(t) !== ds) continue;
@@ -577,7 +585,7 @@ function itemHTML(it, opts = {}) {
   const done = isDone(it);
   const movedTag = (it.extra ? '<span class="extra">新增</span>' : '') + (it.moved ? `<span class="moved">改過・原本 ${esc(shortDate(it.orig))}</span>` : '');
   const mvBtn = opts.movable && it.kind === 'master' && !done ? `<button class="mv" data-move="${esc(it.id)}">改天</button>` : '';
-  return `<div class="item ${done ? 'done' : ''} ${it.routine ? 'routine' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
+  return `<div class="item ${done ? 'done' : ''} ${done && it.id === JUST_ID ? 'just' : ''} ${it.routine ? 'routine' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
     <div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>
     <span class="chip" style="background:${subjClass(it.subject)}">${esc(it.subject)}</span>
     <div class="label">${esc(it.label)}${movedTag}${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}</div>${mvBtn}
@@ -601,9 +609,9 @@ function render() {
   } else $('#countdown').innerHTML = '';
 
   // 今日
-  const doneCount = items.filter(isDone).length;
-  $('#todayCount').textContent = items.length ? `${doneCount} / ${items.length}` : '';
-  const all = items.length > 0 && doneCount === items.length;
+  const required = items.filter((x) => !x.optional), doneCount = required.filter(isDone).length;
+  $('#todayCount').textContent = required.length ? `${doneCount} / ${required.length}` : '';
+  const all = required.length > 0 && doneCount === required.length;   // 「想做再做」不算在內
   if (!items.length) $('#todayList').innerHTML = '<div class="empty">今天沒有排功課，好好休息 😊</div>';
   else $('#todayList').innerHTML = (all ? `<div class="alldone"><div class="big">🎉 今天全部完成！</div><p>${esc(CONFIG.KID_NAME)}好棒！</p></div>` : '') + items.map((it) => itemHTML({ ...it, routine: false })).join('');
 
@@ -651,7 +659,18 @@ function render() {
     const ev = evs.filter((e) => ymd(e.d) === ds);
     days.push({ d: dd, list, ev, late: false, quiet: i > 0 && list.every((x) => x.routine) });
   }
-  $('#planDays').innerHTML = days.map((day) => {
+  // 之前 7 天（收合）
+  const past = [];
+  for (let i = 7; i >= 1; i--) {
+    const dd = addDays(d, -i), list = itemsForDate(DATA, dd, d).filter((x) => !x.routine || isDone(x));
+    const ev = evs.filter((e) => ymd(e.d) === ymd(dd));
+    if (list.length || ev.length) past.push({ d: dd, list, ev, late: false, past: true });
+  }
+  $('#pastDays').innerHTML = past.map(dayHTML).join('') || '<div class="card"><div class="empty">之前沒有紀錄</div></div>';
+  $('#pastDays').classList.toggle('on', !!store('show-past'));
+  $('#pastBtn').textContent = (store('show-past') ? '▾ 收起之前 7 天' : '▸ 看之前 7 天');
+  $('#planDays').innerHTML = days.map(dayHTML).join('') || '<div class="card"><div class="empty">還沒有排任何計畫</div></div>';
+  function dayHTML(day) {
     const ds = ymd(day.d), isToday = ds === todayStr;
     const real = day.list.filter((x) => !x.routine), dn = real.filter(isDone).length;
     const head = `<div class="dayh"><span class="dn ${isToday ? 'today' : day.late ? 'late' : ''}">${isToday ? '今天 ' : day.late ? '過期 ' : ''}${day.d.getMonth() + 1}/${day.d.getDate()}</span><span class="dw">星期${WEEK_CN[day.d.getDay()]}</span>${(day.ev || []).map((e) => `<span class="ev">${esc(e['事件'])}${eventTag(e)}</span>`).join('')}${real.length ? `<span class="cnt">${dn}/${real.length}</span>` : ''}</div>`;
@@ -659,9 +678,9 @@ function render() {
       const routine = day.list.map((x) => esc(x.label)).join('、');
       return `<div class="day quiet">${head}<div class="card"><div class="quietline">沒有排功課${routine ? `・只有 ${routine}` : ''}</div></div></div>`;
     }
-    const body = day.list.length ? day.list.map((it) => itemHTML(it, { movable: true })).join('') : '<div class="empty">沒有排功課</div>';
+    const body = day.list.length ? day.list.map((it) => itemHTML(it, { movable: !day.past })).join('') : '<div class="empty">沒有排功課</div>';
     return `<div class="day">${head}<div class="card">${body}</div></div>`;
-  }).join('') || '<div class="card"><div class="empty">還沒有排任何計畫</div></div>';
+  }
 
   // 近期大事
   const soon = evs.filter((e) => daysBetween(d, e.d) >= 0 && daysBetween(d, e.d) <= CONFIG.EVENTS_AHEAD_DAYS).sort((a, b) => a.d - b.d);
@@ -675,11 +694,11 @@ function render() {
   $('#shareBtn').textContent = `📤 分享給${CONFIG.PARENT_NAME}`;
   if (DATA.fetchedAt) { const t = new Date(DATA.fetchedAt); $('#updatedAt').textContent = `資料更新：${t.getMonth() + 1}/${t.getDate()} ${pad(t.getHours())}:${pad(t.getMinutes())}${DATA.stale ? '（離線，顯示上次的資料）' : ''}`; }
   renderSync();
-  const all_ = [...items, ...backlog]; for (const day of days) for (const it of day.list) if (!all_.find((x) => x.id === it.id)) all_.push(it);
+  const all_ = [...items, ...backlog]; for (const day of [...days, ...past]) for (const it of day.list) if (!all_.find((x) => x.id === it.id)) all_.push(it);
   ALL_ITEMS = all_;
 }
 
-let ALL_ITEMS = [], justToggled = false;
+let ALL_ITEMS = [], justToggled = false, JUST_ID = null;
 const OPEN_SUBJ = new Set(store('open-subj') || []);
 function toggle(id) {
   const it = ALL_ITEMS.find((x) => x.id === id); if (!it) return;
@@ -688,7 +707,7 @@ function toggle(id) {
   const ls = localState(); ls[it.id] = { done: next, ts }; store('done-state', ls);
   if (CONFIG.SCRIPT_URL) enqueue({ ts, date: ymd(TODAY), id: it.id, action: next ? '完成' : '取消', name: `${it.subject}｜${it.label}` });
   if (navigator.vibrate) navigator.vibrate(next ? 30 : 10);
-  justToggled = true; render(); justToggled = false;
+  justToggled = true; JUST_ID = it.id; render(); justToggled = false; JUST_ID = null;
 }
 document.addEventListener('click', (e) => {
   const tab = e.target.closest('.tab');
@@ -697,6 +716,9 @@ document.addEventListener('click', (e) => {
   if (prow) { const s = prow.dataset.subj; const was = OPEN_SUBJ.has(s); OPEN_SUBJ.clear(); if (!was) OPEN_SUBJ.add(s); store('open-subj', [...OPEN_SUBJ]); render(); return; }   // 一次只展開一科
   const mv = e.target.closest('.mv');
   if (mv) { e.stopPropagation(); openMove(mv.dataset.move); return; }
+  if (e.target.closest('#pastBtn')) { store('show-past', !store('show-past')); render(); return; }
+  const del = e.target.closest('.dayopt.del');
+  if (del) { deleteExtra(del.dataset.id); return; }
   const ad = e.target.closest('.addbtn');
   if (ad) { e.stopPropagation(); openAdd(ad.dataset.add); return; }
   if (e.target.closest('.go')) { submitAdd(); return; }
@@ -731,14 +753,21 @@ function openMove(id, draft) {
   let html = `<h3>${draft ? '哪一天做？' : '改到哪一天？'}</h3><div class="what">${esc(it.subject)}｜${esc(it.label)}${exam ? `・最晚 ${shortDate(ymd(deadline))}（${esc(exam['事件'])}前一天）` : ''}</div>`;
   for (let i = 0; i <= daysBetween(TODAY, deadline); i++) {
     const dd = addDays(TODAY, i), ds = ymd(dd);
-    const load = itemsForDate(DATA, dd, TODAY).filter((x) => !x.routine && x.id !== id).length;
+    const others = itemsForDate(DATA, dd, TODAY).filter((x) => !x.routine && x.id !== id);
+    const load = others.length, same = others.filter((x) => x.subject === it.subject).length;
     const tags = evs.filter((e) => ymd(e.d) === ds).map((e) => esc(e['事件'])).join('、');
     const buffer = exam && daysBetween(dd, exam.d) <= CONFIG.BUFFER_DAYS;
-    html += `<button class="dayopt ${ds === cur ? 'cur' : ''}" data-id="${esc(id)}" data-date="${ds}"><span class="n">${esc(fmtDate(dd, TODAY))}<small>${tags}${tags && buffer ? '・' : ''}${buffer ? '緩衝日，盡量別排' : ''}</small></span><span class="load ${load >= 6 ? 'heavy' : ''}">${ds === cur ? '現在在這天' : load ? `那天已有 ${load} 項` : '那天沒事'}</span></button>`;
+    html += `<button class="dayopt ${ds === cur ? 'cur' : ''}" data-id="${esc(id)}" data-date="${ds}"><span class="n">${esc(fmtDate(dd, TODAY))}<small>${tags}${tags && buffer ? '・' : ''}${buffer ? '緩衝日，盡量別排' : ''}</small></span><span class="load ${load >= 6 ? 'heavy' : ''}">${ds === cur ? '現在在這天' : load ? `已有 ${load} 項${same ? `，${esc(it.subject)} ${same} 項` : ''}` : '那天沒事'}</span></button>`;
   }
   if (it.moved) html += `<button class="dayopt back" data-id="${esc(id)}" data-date=""><span class="n">回到原本的 ${esc(shortDate(it.orig))}</span></button>`;
+  if (it.extra) html += `<button class="dayopt del" data-id="${esc(id)}"><span class="n">🗑 刪掉這個新增的項目</span></button>`;
   html += `<button class="cancel">不改了</button>`;
   $('#sheet').innerHTML = html; $('#sheetbg').classList.add('show');
+}
+function deleteExtra(id) {
+  EXTRAS = EXTRAS.filter((x) => masterId({ ...x }) !== id); store('extras', EXTRAS);
+  const ls = localState(); delete ls[id]; store('done-state', ls); delete STATE[id]; delete MOVES[id]; store('moves', MOVES);
+  $('#sheetbg').classList.remove('show'); render();
 }
 function applyMove(id, date) {
   if (id.startsWith('new:')) {
