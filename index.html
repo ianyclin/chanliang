@@ -183,6 +183,10 @@
   .pd .dt { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .pd .dt.late { color: var(--warn); font-weight: 800; }
   .pd .dt.now { color: var(--accent-ink); font-weight: 800; }
+  .addbtn { border: 0; background: #f3eee2; color: #6b6356; font-size: 15px; font-weight: 800; padding: 8px 14px; border-radius: 10px; margin-top: 8px; font-family: inherit; cursor: pointer; }
+  .label .extra { display: inline-block; font-size: 13px; color: #1f6f8b; background: #e3f3f8; border-radius: 6px; padding: 1px 7px; margin-left: 6px; font-weight: 700; vertical-align: middle; }
+  .sheet input { width: 100%; font-size: 20px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; font-family: inherit; margin-bottom: 12px; box-sizing: border-box; }
+  .sheet .go { width: 100%; border: 0; background: var(--accent); color: #fff; font-size: 18px; font-weight: 800; padding: 14px; border-radius: 14px; font-family: inherit; cursor: pointer; }
 
   /* 計畫：按日期 */
   .day { margin-bottom: 14px; }
@@ -300,7 +304,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24g',
+  VERSION: '2026.10.24h',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -474,6 +478,12 @@ function weekdaysOf(s) {
 function splitRule(rule) { return String(rule).split(/[＋+；;]/).map((x) => x.trim()).filter(Boolean); }
 function masterId(r) { return `m:${r['科目']}|${r['項目']}|${r['子項']}`; }
 let MOVES = store('moves') || {};   // iPad 上的改期：{ id: { date, from, ts } }
+let EXTRAS = store('extras') || [];  // iPad 上新增的項目：[{ 科目, 項目:'新增', 子項, 目標日, ts }]
+// 正式計畫裡已經有同科目同名稱的，就把 iPad 上新增的那筆隱藏
+function masterRows(data) {
+  const names = new Set(data.master.map((r) => r['科目'] + '|' + [r['項目'], r['子項']].filter(Boolean).join(' ')));
+  return data.master.concat(EXTRAS.filter((x) => !names.has(x['科目'] + '|' + x['子項'])).map((x) => ({ ...x, 狀態: '已排', 備註: '', _extra: true })));
+}
 function effDate(r, today) {
   const mv = MOVES[masterId(r)];
   const d = mv ? parseDate(mv.date, today) : null;
@@ -481,7 +491,7 @@ function effDate(r, today) {
 }
 function masterItem(r, today) {
   const t = effDate(r, today), mv = MOVES[masterId(r)];
-  return { id: masterId(r), subject: r['科目'], label: [r['項目'], r['子項']].filter(Boolean).join(' '), note: r['備註'] || '', sub: r['備註'] || '', date: t ? ymd(t) : '', orig: r['目標日'] || '', moved: !!(mv && t), kind: 'master', sheetDone: r['狀態'] === '完成' };
+  return { id: masterId(r), subject: r['科目'], label: r._extra ? r['子項'] : [r['項目'], r['子項']].filter(Boolean).join(' '), note: r['備註'] || '', sub: r['備註'] || '', date: t ? ymd(t) : '', orig: r['目標日'] || '', moved: !!(mv && t), extra: !!r._extra, kind: 'master', sheetDone: r['狀態'] === '完成' };
 }
 
 function isRoutine(r) { return /^(否|不|no|n)$/i.test(r['可補做'] || ''); }
@@ -493,7 +503,7 @@ function itemsForDate(data, d, today) {
     if (!weekdaysOf(r['星期']).includes(wd)) continue;
     for (const part of splitRule(r['規則'])) out.push({ id: `w:${ds}:${r['科目']}:${part}`, subject: r['科目'], label: part, sub: '', date: ds, kind: 'weekly', routine: isRoutine(r) });
   }
-  for (const r of data.master) {
+  for (const r of masterRows(data)) {
     const t = effDate(r, today); if (!t || ymd(t) !== ds) continue;
     out.push(masterItem(r, today));
   }
@@ -520,7 +530,7 @@ function buildItems(data, today) {
     }
   }
   // 母表所有過期未完成（不限天數）
-  for (const r of data.master) {
+  for (const r of masterRows(data)) {
     const d = effDate(r, today); if (!d) continue;
     const ds = ymd(d); if (ds >= todayStr) continue;
     const it = masterItem(r, today); it.sub = fmtDate(d, today) + (it.note ? '・' + it.note : '');
@@ -536,7 +546,7 @@ function isDone(it) { const s = STATE[it.id]; return s ? s.done : !!it.sheetDone
 
 function itemHTML(it, opts = {}) {
   const done = isDone(it);
-  const movedTag = it.moved ? `<span class="moved">改過・原本 ${esc(shortDate(it.orig))}</span>` : '';
+  const movedTag = (it.extra ? '<span class="extra">新增</span>' : '') + (it.moved ? `<span class="moved">改過・原本 ${esc(shortDate(it.orig))}</span>` : '');
   const mvBtn = opts.movable && it.kind === 'master' && !done ? `<button class="mv" data-move="${esc(it.id)}">改天</button>` : '';
   return `<div class="item ${done ? 'done' : ''} ${it.routine ? 'routine' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
     <div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>
@@ -576,13 +586,13 @@ function render() {
 
   // 進度條（可展開細項）
   const subj = {};
-  for (const r of DATA.master) {
+  for (const r of masterRows(DATA)) {
     const s = r['科目']; if (!s) continue;
     subj[s] = subj[s] || { total: 0, done: 0, rows: [] };
     const st = STATE[masterId(r)]; const done = st ? st.done : r['狀態'] === '完成';
     const t = effDate(r, d);
     subj[s].total++; if (done) subj[s].done++;
-    subj[s].rows.push({ name: [r['項目'], r['子項']].filter(Boolean).join(' ') + (MOVES[masterId(r)] ? '（改過）' : ''), done, date: t, ds: t ? ymd(t) : '' });
+    subj[s].rows.push({ name: (r._extra ? r['子項'] + '（新增）' : [r['項目'], r['子項']].filter(Boolean).join(' ')) + (MOVES[masterId(r)] ? '（改過）' : ''), done, date: t, ds: t ? ymd(t) : '' });
   }
   const keys = Object.keys(subj).sort((a, b) => SUBJECT_COLORS.indexOf(a) - SUBJECT_COLORS.indexOf(b));
   $('#progressSec').style.display = keys.length ? '' : 'none';
@@ -593,7 +603,7 @@ function render() {
       const cls = !r.ds ? '' : r.ds < todayStr && !r.done ? 'late' : r.ds === todayStr ? 'now' : '';
       return `<div class="pd ${r.done ? 'done' : ''}"><span class="mk">${r.done ? '✓' : ''}</span><span class="nm">${esc(r.name)}</span><span class="dt ${cls}">${r.done ? '完成' : r.date ? fmtDate(r.date, d) : '未排'}</span></div>`;
     }).join('');
-    return `<div class="prow ${OPEN_SUBJ.has(s) ? 'open' : ''}" data-subj="${esc(s)}"><span class="chip" style="background:${subjClass(s)}">${esc(s)}</span><div class="bar"><i style="width:${pct}%;background:${subjClass(s)}"></i></div><span class="pct">${p.done}/${p.total}</span><span class="arrow">▶</span></div><div class="pdetail">${det}</div>`;
+    return `<div class="prow ${OPEN_SUBJ.has(s) ? 'open' : ''}" data-subj="${esc(s)}"><span class="chip" style="background:${subjClass(s)}">${esc(s)}</span><div class="bar"><i style="width:${pct}%;background:${subjClass(s)}"></i></div><span class="pct">${p.done}/${p.total}</span><span class="arrow">▶</span></div><div class="pdetail">${det}<button class="addbtn" data-add="${esc(s)}">＋ 新增${esc(s)}的項目</button></div>`;
   }).join('');
 
   // 計畫：按日期（從今天到最後一個排程日，最多 45 天）
@@ -656,6 +666,9 @@ document.addEventListener('click', (e) => {
   if (prow) { const s = prow.dataset.subj; OPEN_SUBJ.has(s) ? OPEN_SUBJ.delete(s) : OPEN_SUBJ.add(s); store('open-subj', [...OPEN_SUBJ]); render(); return; }
   const mv = e.target.closest('.mv');
   if (mv) { e.stopPropagation(); openMove(mv.dataset.move); return; }
+  const ad = e.target.closest('.addbtn');
+  if (ad) { e.stopPropagation(); openAdd(ad.dataset.add); return; }
+  if (e.target.closest('.go')) { submitAdd(); return; }
   if (e.target.closest('#shareBtn')) { shareSummary(); return; }
   const opt = e.target.closest('.dayopt');
   if (opt) { applyMove(opt.dataset.id, opt.dataset.date); return; }
@@ -666,15 +679,25 @@ document.addEventListener('click', (e) => {
 
 /* ---------- 改期 ---------- */
 function examsSorted() { return DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], TODAY) })).filter((e) => e.d && (e['類型'] || '').indexOf('考') >= 0).sort((a, b) => a.d - b.d); }
-function openMove(id) {
-  const it = ALL_ITEMS.find((x) => x.id === id); if (!it) return;
+let PENDING_ADD = null;
+function openAdd(subject) {
+  $('#sheet').innerHTML = `<h3>新增${esc(subject)}的項目</h3><div class="what">例如：評量 第 7 回、習作 p.20</div><input id="addName" placeholder="要做什麼？" maxlength="40"><button class="go">下一步：選哪一天</button><button class="cancel" style="margin-top:8px">不新增</button>`;
+  PENDING_ADD = { subject }; $('#sheetbg').classList.add('show'); setTimeout(() => $('#addName').focus(), 50);
+}
+function submitAdd() {
+  const name = ($('#addName').value || '').trim(); if (!name) { $('#addName').focus(); return; }
+  PENDING_ADD.name = name;
+  openMove('new:' + PENDING_ADD.subject, { subject: PENDING_ADD.subject, label: name, orig: ymd(TODAY), date: '', moved: false });
+}
+function openMove(id, draft) {
+  const it = draft || ALL_ITEMS.find((x) => x.id === id); if (!it) return;
   const orig = parseDate(it.orig, TODAY) || TODAY;
   const exam = examsSorted().find((e) => e.d > orig);
   let deadline = exam ? addDays(exam.d, -1) : addDays(orig, 14);
   if (deadline < TODAY) deadline = addDays(TODAY, 7);
   const evs = DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], TODAY) })).filter((e) => e.d);
   const cur = it.date;
-  let html = `<h3>改到哪一天？</h3><div class="what">${esc(it.subject)}｜${esc(it.label)}${exam ? `・最晚 ${shortDate(ymd(deadline))}（${esc(exam['事件'])}前一天）` : ''}</div>`;
+  let html = `<h3>${draft ? '哪一天做？' : '改到哪一天？'}</h3><div class="what">${esc(it.subject)}｜${esc(it.label)}${exam ? `・最晚 ${shortDate(ymd(deadline))}（${esc(exam['事件'])}前一天）` : ''}</div>`;
   for (let i = 0; i <= daysBetween(TODAY, deadline); i++) {
     const dd = addDays(TODAY, i), ds = ymd(dd);
     const load = itemsForDate(DATA, dd, TODAY).filter((x) => !x.routine && x.id !== id).length;
@@ -687,6 +710,10 @@ function openMove(id) {
   $('#sheet').innerHTML = html; $('#sheetbg').classList.add('show');
 }
 function applyMove(id, date) {
+  if (id.startsWith('new:')) {
+    if (date && PENDING_ADD) { EXTRAS.push({ 科目: PENDING_ADD.subject, 項目: '新增', 子項: PENDING_ADD.name, 目標日: date, ts: new Date().toISOString() }); store('extras', EXTRAS); }
+    PENDING_ADD = null; $('#sheetbg').classList.remove('show'); render(); return;
+  }
   const it = ALL_ITEMS.find((x) => x.id === id);
   if (!date) delete MOVES[id];
   else if (date !== (it && it.date)) MOVES[id] = { date, from: it ? it.orig : '', ts: new Date().toISOString() };
@@ -705,7 +732,9 @@ async function shareSummary() {
   const mv = Object.entries(MOVES);
   if (mv.length) lines.push('🔁 改期：' + mv.map(([id, m]) => { const it = ALL_ITEMS.find((x) => x.id === id); return `${it ? it.subject + ' ' + it.label : id}：${shortDate(m.from)}→${shortDate(m.date)}`; }).join('、'));
   const subj = {};
-  for (const r of DATA.master) { const s = r['科目']; subj[s] = subj[s] || [0, 0]; subj[s][1]++; const st = STATE[masterId(r)]; if (st ? st.done : r['狀態'] === '完成') subj[s][0]++; }
+  const ex = masterRows(DATA).filter((r) => r._extra);
+  if (ex.length) lines.push('➕ iPad 新增：' + ex.map((r) => `${r['科目']} ${r['子項']}（${shortDate(r['目標日'])}）`).join('、'));
+  for (const r of masterRows(DATA)) { const s = r['科目']; subj[s] = subj[s] || [0, 0]; subj[s][1]++; const st = STATE[masterId(r)]; if (st ? st.done : r['狀態'] === '完成') subj[s][0]++; }
   lines.push('📈 進度：' + Object.entries(subj).map(([s, [a, b]]) => `${s} ${a}/${b}`).join('、'));
   const text = lines.join('\n');
   try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e.name === 'AbortError') return; }
