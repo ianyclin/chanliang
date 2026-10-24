@@ -222,7 +222,7 @@
   .dayopt .load.heavy { color: var(--warn); }
   .dayopt.back { border-style: dashed; color: var(--muted); }
   .sheet .cancel { width: 100%; border: 0; background: #eee; font-size: 18px; font-weight: 800; padding: 14px; border-radius: 14px; margin-top: 6px; font-family: inherit; cursor: pointer; }
-  .share { display: block; width: 100%; border: 0; background: #fff; color: var(--accent-ink); font-size: 18px; font-weight: 800; padding: 16px; border-radius: 16px; box-shadow: var(--shadow); font-family: inherit; cursor: pointer; margin: 8px 0 20px; }
+  .share { display: block; width: 100%; border: 0; background: #fff; color: var(--accent-ink); font-size: 18px; font-weight: 800; padding: 16px; border-radius: 16px; box-shadow: var(--shadow); font-family: inherit; cursor: pointer; margin: 0 0 16px; }
 
   @media (max-width: 420px) {
     body { font-size: 18px; }
@@ -267,6 +267,7 @@
   </div>
 
   <div class="view" id="planView">
+    <button class="share" id="shareBtn">📤 分享給爸媽</button>
     <section>
       <h2>🗓️ 接下來每一天</h2>
       <div class="legend">灰色的是每天固定的事；紅色日期是過期還沒做的。</div>
@@ -276,7 +277,6 @@
       <h2>📅 近期大事</h2>
       <div class="card events" id="events"></div>
     </section>
-    <button class="share" id="shareBtn">📤 分享給爸爸</button>
   </div>
 
   <footer>
@@ -299,7 +299,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24e',
+  VERSION: '2026.10.24f',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -325,7 +325,7 @@ const CONFIG = {
   // 考前幾天算「緩衝日」（改期到這幾天會提醒）
   BUFFER_DAYS: 3,
   // 家長稱呼（分享按鈕用）
-  PARENT_NAME: '爸爸',
+  PARENT_NAME: '爸媽',
   // 小孩的名字（慶祝畫面用）
   KID_NAME: '展諒',
 };
