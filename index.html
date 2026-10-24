@@ -158,6 +158,52 @@
   .confetti { position: absolute; top: -20px; width: 12px; height: 18px; border-radius: 3px; animation: fall linear forwards; }
   @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .8; } }
 
+  /* 分頁切換 */
+  .tabs { display: flex; gap: 10px; margin-bottom: 14px; }
+  .tab {
+    flex: 1; border: 0; background: var(--card); color: var(--muted); font-size: 20px; font-weight: 800;
+    padding: 14px 0; border-radius: 16px; box-shadow: var(--shadow); cursor: pointer; font-family: inherit;
+  }
+  .tab.on { background: var(--accent); color: #fff; }
+  .tab:active { transform: scale(.97); }
+  .view { display: none; } .view.on { display: block; }
+
+  /* 進度條展開細項 */
+  .prow { cursor: pointer; }
+  .prow .arrow { color: #c9c2b2; font-size: 18px; transition: transform .2s; }
+  .prow.open .arrow { transform: rotate(90deg); }
+  .pdetail { display: none; padding: 2px 0 10px 8px; }
+  .prow.open + .pdetail { display: block; }
+  .pd { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 17px; font-weight: 700; border-bottom: 1px dashed var(--line); }
+  .pd:last-child { border-bottom: 0; }
+  .pd .mk { width: 24px; height: 24px; border-radius: 8px; border: 2px solid #d8d0bd; flex: none; display: grid; place-items: center; font-size: 15px; color: #fff; }
+  .pd.done .mk { background: var(--ok); border-color: var(--ok); }
+  .pd.done .nm { color: #9aa; text-decoration: line-through; }
+  .pd .nm { flex: 1; }
+  .pd .dt { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pd .dt.late { color: var(--warn); font-weight: 800; }
+  .pd .dt.now { color: var(--accent-ink); font-weight: 800; }
+
+  /* 計畫：按日期 */
+  .day { margin-bottom: 14px; }
+  .dayh { display: flex; align-items: baseline; gap: 10px; margin: 0 0 6px 6px; flex-wrap: wrap; }
+  .dayh .dn { font-size: 20px; font-weight: 900; }
+  .dayh .dn.today { color: var(--accent-ink); }
+  .dayh .dn.late { color: var(--warn); }
+  .dayh .dw { font-size: 15px; color: var(--muted); font-weight: 700; }
+  .dayh .cnt { font-size: 14px; color: var(--muted); font-weight: 700; margin-left: auto; margin-right: 6px; }
+  .dayh .ev { padding: 0; border: 0; font-size: 14px; display: inline-flex; gap: 6px; }
+  .dayh .ev .t { font-size: 12px; }
+  .day .item { min-height: 54px; padding: 6px 14px; cursor: default; }
+  .day .item:active { background: inherit; }
+  .day .item .box { width: 30px; height: 30px; border-radius: 9px; border-width: 2px; }
+  .day .item .box svg { width: 20px; height: 20px; }
+  .day .item .label { font-size: 18px; }
+  .day .item.routine { opacity: .55; }
+  .day .item.routine .label { font-size: 16px; }
+  .day .empty { padding: 14px; font-size: 16px; }
+  .legend { color: var(--muted); font-size: 14px; font-weight: 600; margin: 0 6px 10px; }
+
   @media (max-width: 420px) {
     body { font-size: 18px; }
     .today { font-size: 26px; }
@@ -178,25 +224,39 @@
   <div id="notice"></div>
   <div id="countdown"></div>
 
-  <section>
-    <h2>✅ 今天要做的 <span class="badge ok" id="todayCount"></span></h2>
-    <div class="card" id="todayList"><div class="empty">載入中…</div></div>
-  </section>
+  <div class="tabs">
+    <button class="tab on" data-view="todayView">📋 今天</button>
+    <button class="tab" data-view="planView">📅 計畫</button>
+  </div>
 
-  <section id="backlogSec" style="display:none">
-    <h2>⏰ 之前還沒做完的 <span class="badge" id="backlogCount"></span></h2>
-    <div class="card" id="backlogList"></div>
-  </section>
+  <div class="view on" id="todayView">
+    <section>
+      <h2>✅ 今天要做的 <span class="badge ok" id="todayCount"></span></h2>
+      <div class="card" id="todayList"><div class="empty">載入中…</div></div>
+    </section>
 
-  <section id="progressSec" style="display:none">
-    <h2>📈 各科進度</h2>
-    <div class="card prog" id="progress"></div>
-  </section>
+    <section id="backlogSec" style="display:none">
+      <h2>⏰ 之前還沒做完的 <span class="badge" id="backlogCount"></span></h2>
+      <div class="card" id="backlogList"></div>
+    </section>
 
-  <section id="eventsSec" style="display:none">
-    <h2>📅 近期大事</h2>
-    <div class="card events" id="events"></div>
-  </section>
+    <section id="progressSec" style="display:none">
+      <h2>📈 各科進度 <span class="legend" style="margin:0">（點一下看細項）</span></h2>
+      <div class="card prog" id="progress"></div>
+    </section>
+  </div>
+
+  <div class="view" id="planView">
+    <section>
+      <h2>🗓️ 接下來每一天</h2>
+      <div class="legend">灰色的是每天固定的事；紅色日期是過期還沒做的。</div>
+      <div id="planDays"></div>
+    </section>
+    <section id="eventsSec" style="display:none">
+      <h2>📅 近期大事</h2>
+      <div class="card events" id="events"></div>
+    </section>
+  </div>
 
   <footer>
     <div><span class="status" id="syncStatus">—</span></div>
@@ -216,7 +276,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.24c',
+  VERSION: '2026.10.24d',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -386,42 +446,48 @@ function weekdaysOf(s) {
 function splitRule(rule) { return String(rule).split(/[＋+；;]/).map((x) => x.trim()).filter(Boolean); }
 function masterId(r) { return `m:${r['科目']}|${r['項目']}|${r['子項']}`; }
 
-function buildItems(data, today) {
-  const todayStr = ymd(today), items = [], backlog = [];
-  const push = (arr, it) => { arr.push(it); };
+function isRoutine(r) { return /^(否|不|no|n)$/i.test(r['可補做'] || ''); }
 
-  // 1. 週規則
-  for (let back = 0; back <= CONFIG.BACKLOG_DAYS; back++) {
-    const d = addDays(today, -back), ds = ymd(d), wd = d.getDay();
-    for (const r of data.weekly) {
-      if (!weekdaysOf(r['星期']).includes(wd)) continue;
-      if (back > 0 && /^(否|不|no|n)$/i.test(r['可補做'] || '')) continue; // 例行項目不補做
-      for (const part of splitRule(r['規則'])) {
-        push(back === 0 ? items : backlog, { id: `w:${ds}:${r['科目']}:${part}`, subject: r['科目'], label: part, sub: back === 0 ? '' : fmtDate(d, today), date: ds, kind: 'weekly' });
-      }
-    }
+// 某一天該做的所有項目（週規則 + 母表目標日 + 考前複習）
+function itemsForDate(data, d, today) {
+  const ds = ymd(d), wd = d.getDay(), out = [];
+  for (const r of data.weekly) {
+    if (!weekdaysOf(r['星期']).includes(wd)) continue;
+    for (const part of splitRule(r['規則'])) out.push({ id: `w:${ds}:${r['科目']}:${part}`, subject: r['科目'], label: part, sub: '', date: ds, kind: 'weekly', routine: isRoutine(r) });
   }
-  // 2. 進度母表：目標日 ≤ 今天、未完成
   for (const r of data.master) {
-    const d = parseDate(r['目標日'], today); if (!d) continue;
-    const ds = ymd(d);
-    const label = [r['項目'], r['子項']].filter(Boolean).join(' ');
-    const it = { id: masterId(r), subject: r['科目'], label, sub: r['備註'] || '', date: ds, kind: 'master', sheetDone: r['狀態'] === '完成' };
-    if (ds === todayStr) push(items, it);
-    else if (ds < todayStr) { it.sub = fmtDate(d, today) + (it.sub ? '・' + it.sub : ''); push(backlog, it); }
+    const t = parseDate(r['目標日'], today); if (!t || ymd(t) !== ds) continue;
+    out.push({ id: masterId(r), subject: r['科目'], label: [r['項目'], r['子項']].filter(Boolean).join(' '), sub: r['備註'] || '', date: ds, kind: 'master', sheetDone: r['狀態'] === '完成' });
   }
-  // 3. 大事記：考前 N 天複習
   for (const e of data.events) {
     if ((e['類型'] || '').indexOf('考') < 0) continue;
-    const d = parseDate(e['日期'], today); if (!d) continue;
-    const diff = daysBetween(today, d);
-    if (diff >= 1 && diff <= CONFIG.EXAM_REVIEW_DAYS) {
-      push(items, { id: `e:${todayStr}:${e['事件']}`, subject: e['科目'] || '複習', label: `✏️ 複習：${e['事件']}`, sub: diff === 1 ? '明天考！' : `${diff} 天後考`, date: todayStr, kind: 'exam' });
-    }
+    const t = parseDate(e['日期'], today); if (!t) continue;
+    const diff = daysBetween(d, t);
+    if (diff >= 1 && diff <= CONFIG.EXAM_REVIEW_DAYS) out.push({ id: `e:${ds}:${e['事件']}`, subject: e['科目'] || '複習', label: `✏️ 複習：${e['事件']}`, sub: diff === 1 ? '明天考！' : `${diff} 天後考`, date: ds, kind: 'exam' });
   }
   const order = (a, b) => (SUBJECT_COLORS.indexOf(a.subject) - SUBJECT_COLORS.indexOf(b.subject)) || a.label.localeCompare(b.label, 'zh-Hant');
-  items.sort(order);
-  backlog.sort((a, b) => a.date.localeCompare(b.date) || order(a, b));
+  out.sort((a, b) => (a.routine ? 1 : 0) - (b.routine ? 1 : 0) || order(a, b));
+  return out;
+}
+
+function buildItems(data, today) {
+  const todayStr = ymd(today);
+  const items = itemsForDate(data, today, today);
+  const backlog = [];
+  // 前幾天的週規則（例行的除外）
+  for (let back = 1; back <= CONFIG.BACKLOG_DAYS; back++) {
+    const d = addDays(today, -back);
+    for (const it of itemsForDate(data, d, today)) {
+      if (it.kind === 'weekly' && !it.routine) backlog.push({ ...it, sub: fmtDate(d, today) });
+    }
+  }
+  // 母表所有過期未完成（不限天數）
+  for (const r of data.master) {
+    const d = parseDate(r['目標日'], today); if (!d) continue;
+    const ds = ymd(d); if (ds >= todayStr) continue;
+    backlog.push({ id: masterId(r), subject: r['科目'], label: [r['項目'], r['子項']].filter(Boolean).join(' '), sub: fmtDate(d, today) + (r['備註'] ? '・' + r['備註'] : ''), note: r['備註'] || '', date: ds, kind: 'master', sheetDone: r['狀態'] === '完成' });
+  }
+  backlog.sort((a, b) => a.date.localeCompare(b.date) || SUBJECT_COLORS.indexOf(a.subject) - SUBJECT_COLORS.indexOf(b.subject));
   return { items, backlog };
 }
 
@@ -431,21 +497,23 @@ function isDone(it) { const s = STATE[it.id]; return s ? s.done : !!it.sheetDone
 
 function itemHTML(it) {
   const done = isDone(it);
-  return `<div class="item ${done ? 'done' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
+  return `<div class="item ${done ? 'done' : ''} ${it.routine ? 'routine' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
     <div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>
     <span class="chip" style="background:${subjClass(it.subject)}">${esc(it.subject)}</span>
     <div class="label">${esc(it.label)}${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}</div>
   </div>`;
 }
+function eventTag(e) { const t = e['類型'] || ''; return `<span class="t ${t.indexOf('考') >= 0 ? 'exam' : /假/.test(t) ? 'off' : ''}">${esc(t)}</span>`; }
 
 function render() {
   if (!DATA) return;
   const { items, backlog } = buildItems(DATA, TODAY);
-  const d = TODAY;
+  const d = TODAY, todayStr = ymd(d);
   $('#today').innerHTML = `${d.getMonth() + 1}月${d.getDate()}日 星期${WEEK_CN[d.getDay()]}<small>${d.getFullYear()} 年・${CONFIG.KID_NAME}的今日清單</small>`;
 
+  const evs = DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], d) })).filter((e) => e.d);
   // 倒數
-  const exams = DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], d) })).filter((e) => e.d && (e['類型'] || '').indexOf('考') >= 0 && daysBetween(d, e.d) >= 0).sort((a, b) => a.d - b.d);
+  const exams = evs.filter((e) => (e['類型'] || '').indexOf('考') >= 0 && daysBetween(d, e.d) >= 0).sort((a, b) => a.d - b.d);
   if (exams.length) {
     const ex = exams[0], n = daysBetween(d, ex.d);
     $('#countdown').innerHTML = `<div class="countdown"><div class="num">${n === 0 ? '今天' : `${n}<small>天</small>`}</div><div class="txt">${esc(ex['事件'])}<span>${n === 0 ? '就是今天，加油！' : `還有 ${n} 天・${fmtDate(ex.d, d)}`}</span></div></div>`;
@@ -456,7 +524,7 @@ function render() {
   $('#todayCount').textContent = items.length ? `${doneCount} / ${items.length}` : '';
   const all = items.length > 0 && doneCount === items.length;
   if (!items.length) $('#todayList').innerHTML = '<div class="empty">今天沒有排功課，好好休息 😊</div>';
-  else $('#todayList').innerHTML = (all ? `<div class="alldone"><div class="big">🎉 今天全部完成！</div><p>${esc(CONFIG.KID_NAME)}好棒！</p></div>` : '') + items.map(itemHTML).join('');
+  else $('#todayList').innerHTML = (all ? `<div class="alldone"><div class="big">🎉 今天全部完成！</div><p>${esc(CONFIG.KID_NAME)}好棒！</p></div>` : '') + items.map((it) => itemHTML({ ...it, routine: false })).join('');
 
   // 積欠
   const pending = backlog.filter((it) => !isDone(it));
@@ -464,23 +532,58 @@ function render() {
   $('#backlogCount').textContent = pending.length;
   $('#backlogList').innerHTML = pending.map(itemHTML).join('');
 
-  // 進度條
+  // 進度條（可展開細項）
   const subj = {};
   for (const r of DATA.master) {
     const s = r['科目']; if (!s) continue;
-    subj[s] = subj[s] || { total: 0, done: 0 };
-    subj[s].total++;
-    const st = STATE[masterId(r)];
-    if (st ? st.done : r['狀態'] === '完成') subj[s].done++;
+    subj[s] = subj[s] || { total: 0, done: 0, rows: [] };
+    const st = STATE[masterId(r)]; const done = st ? st.done : r['狀態'] === '完成';
+    const t = parseDate(r['目標日'], d);
+    subj[s].total++; if (done) subj[s].done++;
+    subj[s].rows.push({ name: [r['項目'], r['子項']].filter(Boolean).join(' '), done, date: t, ds: t ? ymd(t) : '' });
   }
   const keys = Object.keys(subj).sort((a, b) => SUBJECT_COLORS.indexOf(a) - SUBJECT_COLORS.indexOf(b));
   $('#progressSec').style.display = keys.length ? '' : 'none';
-  $('#progress').innerHTML = keys.map((s) => { const p = subj[s], pct = Math.round((p.done / p.total) * 100); return `<div class="prow"><span class="chip" style="background:${subjClass(s)}">${esc(s)}</span><div class="bar"><i style="width:${pct}%;background:${subjClass(s)}"></i></div><span class="pct">${p.done}/${p.total}</span></div>`; }).join('');
+  $('#progress').innerHTML = keys.map((s) => {
+    const p = subj[s], pct = Math.round((p.done / p.total) * 100);
+    p.rows.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || a.ds.localeCompare(b.ds));
+    const det = p.rows.map((r) => {
+      const cls = !r.ds ? '' : r.ds < todayStr && !r.done ? 'late' : r.ds === todayStr ? 'now' : '';
+      return `<div class="pd ${r.done ? 'done' : ''}"><span class="mk">${r.done ? '✓' : ''}</span><span class="nm">${esc(r.name)}</span><span class="dt ${cls}">${r.done ? '完成' : r.date ? fmtDate(r.date, d) : '未排'}</span></div>`;
+    }).join('');
+    return `<div class="prow ${OPEN_SUBJ.has(s) ? 'open' : ''}" data-subj="${esc(s)}"><span class="chip" style="background:${subjClass(s)}">${esc(s)}</span><div class="bar"><i style="width:${pct}%;background:${subjClass(s)}"></i></div><span class="pct">${p.done}/${p.total}</span><span class="arrow">▶</span></div><div class="pdetail">${det}</div>`;
+  }).join('');
+
+  // 計畫：按日期（從今天到最後一個排程日，最多 45 天）
+  let last = addDays(d, 7);
+  for (const r of DATA.master) { const t = parseDate(r['目標日'], d); if (t && t > last) last = t; }
+  for (const e of evs) { if (e.d > last && daysBetween(d, e.d) <= 45) last = e.d; }
+  if (daysBetween(d, last) > 45) last = addDays(d, 45);
+  const days = [];
+  // 過期未完成的先列
+  const lateByDate = {};
+  for (const it of pending) { if (it.kind !== 'master') continue; (lateByDate[it.date] = lateByDate[it.date] || []).push({ ...it, sub: it.note || '' }); }
+  for (const ds of Object.keys(lateByDate).sort()) days.push({ d: new Date(ds + 'T00:00:00'), list: lateByDate[ds], late: true });
+  for (let i = 0; i <= daysBetween(d, last); i++) {
+    const dd = addDays(d, i), ds = ymd(dd);
+    const list = itemsForDate(DATA, dd, d);
+    const ev = evs.filter((e) => ymd(e.d) === ds);
+    if (!list.length && !ev.length) continue;
+    if (list.every((x) => x.routine) && !ev.length && i > 0) continue; // 只有例行事項的日子不佔版面
+    days.push({ d: dd, list, ev, late: false });
+  }
+  $('#planDays').innerHTML = days.map((day) => {
+    const ds = ymd(day.d), isToday = ds === todayStr;
+    const real = day.list.filter((x) => !x.routine), dn = real.filter(isDone).length;
+    const head = `<div class="dayh"><span class="dn ${isToday ? 'today' : day.late ? 'late' : ''}">${isToday ? '今天 ' : day.late ? '過期 ' : ''}${day.d.getMonth() + 1}/${day.d.getDate()}</span><span class="dw">星期${WEEK_CN[day.d.getDay()]}</span>${(day.ev || []).map((e) => `<span class="ev">${esc(e['事件'])}${eventTag(e)}</span>`).join('')}${real.length ? `<span class="cnt">${dn}/${real.length}</span>` : ''}</div>`;
+    const body = day.list.length ? day.list.map(itemHTML).join('') : '<div class="empty">沒有排功課</div>';
+    return `<div class="day">${head}<div class="card">${body}</div></div>`;
+  }).join('') || '<div class="card"><div class="empty">還沒有排任何計畫</div></div>';
 
   // 近期大事
-  const evs = DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], d) })).filter((e) => e.d && daysBetween(d, e.d) >= 0 && daysBetween(d, e.d) <= CONFIG.EVENTS_AHEAD_DAYS).sort((a, b) => a.d - b.d);
-  $('#eventsSec').style.display = evs.length ? '' : 'none';
-  $('#events').innerHTML = evs.map((e) => `<div class="ev"><span class="d">${esc(fmtDate(e.d, d))}</span><span>${esc(e['事件'])}</span><span class="t ${(e['類型'] || '').indexOf('考') >= 0 ? 'exam' : /假/.test(e['類型'] || '') ? 'off' : ''}">${esc(e['類型'] || '')}</span></div>`).join('');
+  const soon = evs.filter((e) => daysBetween(d, e.d) >= 0 && daysBetween(d, e.d) <= CONFIG.EVENTS_AHEAD_DAYS).sort((a, b) => a.d - b.d);
+  $('#eventsSec').style.display = soon.length ? '' : 'none';
+  $('#events').innerHTML = soon.map((e) => `<div class="ev"><span class="d">${esc(fmtDate(e.d, d))}</span><span>${esc(e['事件'])}</span>${eventTag(e)}</div>`).join('');
 
   // 慶祝（每天一次）
   if (all && store('celebrated') !== ymd(d) && justToggled) { store('celebrated', ymd(d)); party(); }
@@ -488,10 +591,12 @@ function render() {
   $('#ver').textContent = `版本 ${CONFIG.VERSION}`;
   if (DATA.fetchedAt) { const t = new Date(DATA.fetchedAt); $('#updatedAt').textContent = `資料更新：${t.getMonth() + 1}/${t.getDate()} ${pad(t.getHours())}:${pad(t.getMinutes())}${DATA.stale ? '（離線，顯示上次的資料）' : ''}`; }
   renderSync();
-  ALL_ITEMS = [...items, ...backlog];
+  const all_ = [...items, ...backlog]; for (const day of days) for (const it of day.list) if (!all_.find((x) => x.id === it.id)) all_.push(it);
+  ALL_ITEMS = all_;
 }
 
 let ALL_ITEMS = [], justToggled = false;
+const OPEN_SUBJ = new Set(store('open-subj') || []);
 function toggle(id) {
   const it = ALL_ITEMS.find((x) => x.id === id); if (!it) return;
   const next = !isDone(it); const ts = new Date().toISOString();
@@ -502,8 +607,19 @@ function toggle(id) {
   justToggled = true; render(); justToggled = false;
 }
 document.addEventListener('click', (e) => {
-  const row = e.target.closest('.item'); if (row) toggle(row.dataset.id);
+  const tab = e.target.closest('.tab');
+  if (tab) { showView(tab.dataset.view); return; }
+  const prow = e.target.closest('.prow');
+  if (prow) { const s = prow.dataset.subj; OPEN_SUBJ.has(s) ? OPEN_SUBJ.delete(s) : OPEN_SUBJ.add(s); store('open-subj', [...OPEN_SUBJ]); render(); return; }
+  const row = e.target.closest('.item');
+  if (row && !row.closest('#planView')) toggle(row.dataset.id);   // 計畫頁只看不勾
 });
+function showView(id) {
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.dataset.view === id));
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === id));
+  store('view', id);
+}
+showView(store('view') || 'todayView');
 
 function party() {
   const p = $('#party'); p.classList.add('show');
