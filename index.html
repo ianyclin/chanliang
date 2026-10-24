@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<title>展諒今日清單</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="今日清單">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fff8ec">
+<meta http-equiv="Cache-Control" content="no-store">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+  :root {
+    --bg: #fff8ec;
+    --card: #ffffff;
+    --ink: #2b2a33;
+    --muted: #7a7788;
+    --line: #efe6d3;
+    --accent: #ff8a3d;
+    --accent-ink: #7a3a0c;
+    --ok: #3cb371;
+    --ok-bg: #e6f7ec;
+    --warn: #e5484d;
+    --warn-bg: #fdecec;
+    --shadow: 0 4px 16px rgba(80, 60, 20, .08);
+    --radius: 22px;
+    --row-h: 72px;
+    --s-國語: #ff7b7b;
+    --s-數學: #4f9dff;
+    --s-社會: #f6b73c;
+    --s-自然: #45c58a;
+    --s-英文: #9b7bff;
+    --s-小提琴: #e07bbf;
+    --s-其他: #a0a0b0;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+    font-size: 20px;
+    line-height: 1.4;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-user-select: none; user-select: none;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
+
+  /* 頂部 */
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .today { font-size: 30px; font-weight: 800; letter-spacing: .5px; }
+  .today small { display: block; font-size: 16px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .refresh {
+    border: 0; background: var(--card); color: var(--ink); box-shadow: var(--shadow);
+    width: 56px; height: 56px; border-radius: 50%; font-size: 26px; cursor: pointer; flex: none;
+    display: grid; place-items: center;
+  }
+  .refresh:active { transform: scale(.92); }
+  .refresh.spin svg { animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .countdown {
+    background: linear-gradient(135deg, #ffe0c2, #ffd1dc);
+    border-radius: var(--radius); padding: 14px 18px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow);
+  }
+  .countdown .num { font-size: 44px; font-weight: 900; color: var(--accent-ink); line-height: 1; min-width: 60px; text-align: center; }
+  .countdown .num small { font-size: 18px; font-weight: 700; margin-left: 2px; }
+  .countdown .txt { font-size: 18px; font-weight: 700; color: #5a3a1a; }
+  .countdown .txt span { display: block; font-size: 15px; color: #8a6a4a; font-weight: 600; }
+
+  /* 區塊 */
+  section { margin-bottom: 20px; }
+  h2 {
+    font-size: 18px; color: var(--muted); font-weight: 800; margin: 0 0 8px 6px; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2 .badge { background: var(--warn); color: #fff; border-radius: 999px; font-size: 14px; padding: 2px 10px; }
+  h2 .badge.ok { background: var(--ok); }
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+
+  /* 項目列 */
+  .item {
+    display: flex; align-items: center; gap: 14px; min-height: var(--row-h); padding: 10px 16px;
+    border-bottom: 1px solid var(--line); cursor: pointer; position: relative; transition: background .2s;
+  }
+  .item:last-child { border-bottom: 0; }
+  .item:active { background: #fff5e6; }
+  .item.done { background: var(--ok-bg); }
+  .box {
+    width: 44px; height: 44px; border-radius: 14px; border: 3px solid #cfc6b4; flex: none;
+    display: grid; place-items: center; background: #fff; transition: all .2s;
+  }
+  .item.done .box { background: var(--ok); border-color: var(--ok); animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
+  .box svg { width: 28px; height: 28px; opacity: 0; transform: scale(.4); transition: all .2s; }
+  .item.done .box svg { opacity: 1; transform: scale(1); }
+  @keyframes pop { 0% { transform: scale(.7); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  .chip {
+    flex: none; font-size: 15px; font-weight: 800; color: #fff; border-radius: 10px; padding: 4px 9px;
+    background: var(--s-其他); min-width: 54px; text-align: center;
+  }
+  .label { flex: 1; font-size: 22px; font-weight: 700; word-break: break-word; }
+  .label .sub { display: block; font-size: 15px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+  .item.done .label { color: #5f8f6f; text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: rgba(60,179,113,.6); }
+  .item .tag { flex: none; font-size: 13px; font-weight: 700; color: var(--warn); background: var(--warn-bg); border-radius: 8px; padding: 2px 8px; }
+
+  .empty { padding: 28px 18px; text-align: center; color: var(--muted); font-weight: 700; }
+  .alldone {
+    padding: 28px 18px; text-align: center; background: linear-gradient(135deg, #e6f7ec, #fff6cc);
+  }
+  .alldone .big { font-size: 40px; font-weight: 900; color: #2e8b57; }
+  .alldone p { margin: 6px 0 0; color: #557; font-weight: 700; }
+
+  /* 進度條 */
+  .prog { padding: 8px 16px; }
+  .prow { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .prow:last-child { border-bottom: 0; }
+  .prow .chip { min-width: 60px; }
+  .bar { flex: 1; height: 18px; background: #f0ebe0; border-radius: 999px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 999px; background: var(--s-其他); transition: width .6s ease; }
+  .pct { font-size: 15px; font-weight: 800; color: var(--muted); min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* 近期大事 */
+  .events { padding: 4px 16px; }
+  .ev { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 18px; font-weight: 700; }
+  .ev:last-child { border-bottom: 0; }
+  .ev .d { color: var(--muted); font-size: 15px; min-width: 92px; font-variant-numeric: tabular-nums; }
+  .ev .t { font-size: 13px; border-radius: 8px; padding: 2px 8px; background: #eee; color: #555; }
+  .ev .t.exam { background: #ffe3e3; color: #b32; }
+
+  /* 底部 */
+  footer { margin-top: 24px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.8; }
+  footer .ver { opacity: .7; }
+  .status { display: inline-block; border-radius: 999px; padding: 1px 10px; background: #eee; }
+  .status.warn { background: var(--warn-bg); color: var(--warn); }
+  .status.ok { background: var(--ok-bg); color: #2e8b57; }
+
+  .notice { background: #fff3cd; color: #6b4e00; border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; font-size: 16px; font-weight: 600; line-height: 1.5; }
+  .notice code { background: rgba(0,0,0,.06); padding: 1px 6px; border-radius: 6px; font-size: 14px; }
+
+  /* 慶祝畫面 */
+  .party {
+    position: fixed; inset: 0; background: rgba(255, 248, 236, .96); display: none;
+    align-items: center; justify-content: center; flex-direction: column; text-align: center; z-index: 50; padding: 24px;
+  }
+  .party.show { display: flex; }
+  .party .emoji { font-size: 110px; line-height: 1; animation: bounce 1s ease infinite alternate; }
+  @keyframes bounce { to { transform: translateY(-18px) rotate(6deg); } }
+  .party h1 { font-size: 52px; margin: 12px 0 4px; color: #2e8b57; font-weight: 900; }
+  .party p { font-size: 22px; color: #557; font-weight: 700; margin: 0 0 28px; }
+  .party button {
+    border: 0; background: var(--accent); color: #fff; font-size: 24px; font-weight: 800; padding: 16px 40px; border-radius: 999px; box-shadow: var(--shadow); cursor: pointer;
+  }
+  .confetti { position: absolute; top: -20px; width: 12px; height: 18px; border-radius: 3px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .8; } }
+
+  @media (max-width: 420px) {
+    body { font-size: 18px; }
+    .today { font-size: 26px; }
+    .label { font-size: 20px; }
+    .chip { font-size: 13px; min-width: 48px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="today" id="today">載入中…</div>
+    <button class="refresh" id="refreshBtn" aria-label="重新整理">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
+    </button>
+  </header>
+
+  <div id="notice"></div>
+  <div id="countdown"></div>
+
+  <section>
+    <h2>✅ 今天要做的 <span class="badge ok" id="todayCount"></span></h2>
+    <div class="card" id="todayList"><div class="empty">載入中…</div></div>
+  </section>
+
+  <section id="backlogSec" style="display:none">
+    <h2>⏰ 之前還沒做完的 <span class="badge" id="backlogCount"></span></h2>
+    <div class="card" id="backlogList"></div>
+  </section>
+
+  <section id="progressSec" style="display:none">
+    <h2>📈 各科進度</h2>
+    <div class="card prog" id="progress"></div>
+  </section>
+
+  <section id="eventsSec" style="display:none">
+    <h2>📅 近期大事</h2>
+    <div class="card events" id="events"></div>
+  </section>
+
+  <footer>
+    <div><span class="status" id="syncStatus">—</span></div>
+    <div id="updatedAt"></div>
+    <div class="ver" id="ver"></div>
+  </footer>
+</div>
+
+<div class="party" id="party">
+  <div class="emoji">🎉</div>
+  <h1>全部完成！</h1>
+  <p id="partyMsg">今天的功課都做完了，太棒了！</p>
+  <button id="partyClose">好耶！</button>
+</div>
+
+<script>
+/* ===================== 設定（家長只需要改這裡） ===================== */
+const CONFIG = {
+  // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
+  VERSION: '2026.10.24a',
+
+  // 讀取方式 'published'：Sheet「檔案 → 分享 → 發布到網路」→ 整份文件 → 網頁。
+  //   然後把網址裡 /d/e/ 後面那串（2PACX-...）貼到 PUBLISHED_ID。
+  //   每個分頁需要 gid（看網址 #gid=數字），填到 GIDS。
+  // 讀取方式 'gviz'：只要把 Sheet「共用」設為「知道連結的任何人可檢視」，
+  //   把網址 /d/ 後面那串貼到 SHEET_ID 就好，不需要 gid（用分頁名稱）。推薦。
+  READ_MODE: 'gviz',
+  SHEET_ID: '',            // 例：1AbCdEfG...（gviz 模式用）
+  PUBLISHED_ID: '',        // 例：2PACX-1v...（published 模式用）
+  GIDS: { '進度母表': '0', '週規則': '', '大事記': '', '完成紀錄': '' },
+
+  // Apps Script Web App 網址（部署後的 /exec 網址）。留空就只存在 iPad 本機。
+  SCRIPT_URL: '',
+
+  // 分頁名稱（跟 Sheet 裡的要一樣）
+  TABS: { master: '進度母表', weekly: '週規則', events: '大事記', log: '完成紀錄' },
+
+  // 大考前幾天開始出現「✏️ 複習」項目
+  EXAM_REVIEW_DAYS: 2,
+  // 「之前還沒做完的」最多回看幾天（週規則可用「可補做=否」排除例行項目）
+  BACKLOG_DAYS: 3,
+  // 近期大事顯示幾天內
+  EVENTS_AHEAD_DAYS: 14,
+  // 小孩的名字（慶祝畫面用）
+  KID_NAME: '展諒',
+};
+/* ================================================================== */
+
+const $ = (s) => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const DEMO = params.get('demo') === '1';
+const SUBJECT_COLORS = ['國語', '數學', '社會', '自然', '英文', '小提琴'];
+const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
+
+/* ---------- 小工具 ---------- */
+function pad(n) { return String(n).padStart(2, '0'); }
+function ymd(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function todayDate() {
+  const o = params.get('date');            // 測試用：?date=2026-10-25
+  if (o && /^\d{4}-\d{2}-\d{2}$/.test(o)) return new Date(o + 'T00:00:00');
+  const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+function parseDate(s, ref) {
+  if (!s) return null;
+  s = String(s).trim();
+  let m;
+  if ((m = s.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/))) return new Date(+m[1], +m[2] - 1, +m[3]);
+  if ((m = s.match(/^(\d{1,2})[/月](\d{1,2})/))) return new Date(ref.getFullYear(), +m[1] - 1, +m[2]);
+  const d = new Date(s); return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function fmtDate(d, ref) {
+  const diff = daysBetween(ref, d);
+  const base = `${d.getMonth() + 1}/${d.getDate()}（${WEEK_CN[d.getDay()]}）`;
+  if (diff === 0) return '今天 ' + base;
+  if (diff === 1) return '明天 ' + base;
+  if (diff === 2) return '後天 ' + base;
+  if (diff === -1) return '昨天 ' + base;
+  return base;
+}
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function subjClass(s) { return SUBJECT_COLORS.includes(s) ? `var(--s-${s})` : 'var(--s-其他)'; }
+function store(k, v) { try { if (v === undefined) { const r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+
+/* ---------- CSV ---------- */
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter((r) => r.some((x) => String(x).trim() !== ''));
+}
+function rowsToObjects(rows) {
+  if (!rows.length) return [];
+  const head = rows[0].map((h) => String(h).trim());
+  return rows.slice(1).map((r) => { const o = {}; head.forEach((h, i) => { o[h] = String(r[i] ?? '').trim(); }); return o; });
+}
+
+/* ---------- 讀資料 ---------- */
+function tabUrl(tab) {
+  const bust = `t=${Date.now()}`;
+  if (DEMO) return `sheet-template/${encodeURIComponent(tab)}.csv?${bust}`;
+  if (CONFIG.READ_MODE === 'published') {
+    return `https://docs.google.com/spreadsheets/d/e/${CONFIG.PUBLISHED_ID}/pub?gid=${CONFIG.GIDS[tab] || 0}&single=true&output=csv&${bust}`;
+  }
+  return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}&${bust}`;
+}
+function configured() {
+  if (DEMO) return true;
+  return CONFIG.READ_MODE === 'published' ? !!CONFIG.PUBLISHED_ID : !!CONFIG.SHEET_ID;
+}
+async function fetchTab(tab) {
+  const r = await fetch(tabUrl(tab), { cache: 'no-store' });
+  if (!r.ok) throw new Error(`${tab} HTTP ${r.status}`);
+  const txt = await r.text();
+  if (/^\s*</.test(txt)) throw new Error(`${tab} 不是 CSV（請確認分享/發布設定）`);
+  return rowsToObjects(parseCSV(txt));
+}
+async function loadAll() {
+  const names = CONFIG.TABS;
+  const results = await Promise.allSettled([fetchTab(names.master), fetchTab(names.weekly), fetchTab(names.events), fetchTab(names.log)]);
+  const [master, weekly, events, log] = results.map((r) => (r.status === 'fulfilled' ? r.value : null));
+  const errors = results.filter((r) => r.status === 'rejected').map((r) => r.reason.message);
+  // 母表 / 週規則 / 大事記 必須成功；完成紀錄分頁可以沒有
+  if (!master || !weekly || !events) throw new Error(errors.join('；'));
+  const data = { master, weekly, events, log: log || [], fetchedAt: new Date().toISOString() };
+  store('data-cache', data);
+  return data;
+}
+
+/* ---------- 完成狀態（本機 + 雲端合併） ---------- */
+function localState() { return store('done-state') || {}; }
+function mergedState(log) {
+  const st = { ...localState() };
+  for (const r of log) {
+    const id = r['項目ID']; if (!id) continue;
+    const ts = r['時間戳'] || ''; const done = (r['動作'] || '') === '完成';
+    if (!st[id] || (st[id].ts || '') < ts) st[id] = { done, ts, remote: true };
+  }
+  return st;
+}
+
+/* ---------- 送出佇列 ---------- */
+let flushing = false;
+function enqueue(rec) { const q = store('queue') || []; q.push(rec); store('queue', q); renderSync(); flushQueue(); }
+async function flushQueue() {
+  if (flushing || !CONFIG.SCRIPT_URL || DEMO) { renderSync(); return; }
+  let q = store('queue') || []; if (!q.length) { renderSync(); return; }
+  flushing = true;
+  try {
+    while (q.length) {
+      const rec = q[0];
+      const r = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify(rec) }); // text/plain，不觸發 preflight
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      q.shift(); store('queue', q);
+    }
+  } catch (e) { console.warn('送出失敗，稍後重試', e); }
+  flushing = false; renderSync();
+}
+function renderSync() {
+  const q = store('queue') || []; const el = $('#syncStatus');
+  if (DEMO) { el.textContent = '示範模式'; el.className = 'status'; return; }
+  if (!CONFIG.SCRIPT_URL) { el.textContent = '只存在這台 iPad'; el.className = 'status'; return; }
+  if (q.length) { el.textContent = `還有 ${q.length} 筆沒送出`; el.className = 'status warn'; }
+  else { el.textContent = '已同步'; el.className = 'status ok'; }
+}
+
+/* ---------- 規則展開 ---------- */
+function weekdaysOf(s) {
+  s = String(s).replace(/[週周星期禮拜]/g, '');
+  if (/每天|每日|天天|全部/.test(s)) return [0, 1, 2, 3, 4, 5, 6];
+  const set = new Set();
+  if (/平日/.test(s)) [1, 2, 3, 4, 5].forEach((d) => set.add(d));
+  if (/週末|假日/.test(s)) [0, 6].forEach((d) => set.add(d));
+  for (const ch of s) { const i = WEEK_CN.indexOf(ch); if (i >= 0) set.add(i); if (ch === '天') set.add(0); }
+  return [...set];
+}
+function splitRule(rule) { return String(rule).split(/[＋+；;]/).map((x) => x.trim()).filter(Boolean); }
+function masterId(r) { return `m:${r['科目']}|${r['項目']}|${r['子項']}`; }
+
+function buildItems(data, today) {
+  const todayStr = ymd(today), items = [], backlog = [];
+  const push = (arr, it) => { arr.push(it); };
+
+  // 1. 週規則
+  for (let back = 0; back <= CONFIG.BACKLOG_DAYS; back++) {
+    const d = addDays(today, -back), ds = ymd(d), wd = d.getDay();
+    for (const r of data.weekly) {
+      if (!weekdaysOf(r['星期']).includes(wd)) continue;
+      if (back > 0 && /^(否|不|no|n)$/i.test(r['可補做'] || '')) continue; // 例行項目不補做
+      for (const part of splitRule(r['規則'])) {
+        push(back === 0 ? items : backlog, { id: `w:${ds}:${r['科目']}:${part}`, subject: r['科目'], label: part, sub: back === 0 ? '' : fmtDate(d, today), date: ds, kind: 'weekly' });
+      }
+    }
+  }
+  // 2. 進度母表：目標日 ≤ 今天、未完成
+  for (const r of data.master) {
+    const d = parseDate(r['目標日'], today); if (!d) continue;
+    const ds = ymd(d);
+    const label = [r['項目'], r['子項']].filter(Boolean).join(' ');
+    const it = { id: masterId(r), subject: r['科目'], label, sub: r['備註'] || '', date: ds, kind: 'master', sheetDone: r['狀態'] === '完成' };
+    if (ds === todayStr) push(items, it);
+    else if (ds < todayStr) { it.sub = fmtDate(d, today) + (it.sub ? '・' + it.sub : ''); push(backlog, it); }
+  }
+  // 3. 大事記：考前 N 天複習
+  for (const e of data.events) {
+    if ((e['類型'] || '').indexOf('考') < 0) continue;
+    const d = parseDate(e['日期'], today); if (!d) continue;
+    const diff = daysBetween(today, d);
+    if (diff >= 1 && diff <= CONFIG.EXAM_REVIEW_DAYS) {
+      push(items, { id: `e:${todayStr}:${e['事件']}`, subject: e['科目'] || '複習', label: `✏️ 複習：${e['事件']}`, sub: diff === 1 ? '明天考！' : `${diff} 天後考`, date: todayStr, kind: 'exam' });
+    }
+  }
+  const order = (a, b) => (SUBJECT_COLORS.indexOf(a.subject) - SUBJECT_COLORS.indexOf(b.subject)) || a.label.localeCompare(b.label, 'zh-Hant');
+  items.sort(order);
+  backlog.sort((a, b) => a.date.localeCompare(b.date) || order(a, b));
+  return { items, backlog };
+}
+
+/* ---------- 畫面 ---------- */
+let DATA = null, TODAY = todayDate(), STATE = {};
+function isDone(it) { const s = STATE[it.id]; return s ? s.done : !!it.sheetDone; }
+
+function itemHTML(it) {
+  const done = isDone(it);
+  return `<div class="item ${done ? 'done' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
+    <div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>
+    <span class="chip" style="background:${subjClass(it.subject)}">${esc(it.subject)}</span>
+    <div class="label">${esc(it.label)}${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}</div>
+  </div>`;
+}
+
+function render() {
+  if (!DATA) return;
+  const { items, backlog } = buildItems(DATA, TODAY);
+  const d = TODAY;
+  $('#today').innerHTML = `${d.getMonth() + 1}月${d.getDate()}日 星期${WEEK_CN[d.getDay()]}<small>${d.getFullYear()} 年・${CONFIG.KID_NAME}的今日清單</small>`;
+
+  // 倒數
+  const exams = DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], d) })).filter((e) => e.d && (e['類型'] || '').indexOf('考') >= 0 && daysBetween(d, e.d) >= 0).sort((a, b) => a.d - b.d);
+  if (exams.length) {
+    const ex = exams[0], n = daysBetween(d, ex.d);
+    $('#countdown').innerHTML = `<div class="countdown"><div class="num">${n === 0 ? '今天' : `${n}<small>天</small>`}</div><div class="txt">${esc(ex['事件'])}<span>${n === 0 ? '就是今天，加油！' : `還有 ${n} 天・${fmtDate(ex.d, d)}`}</span></div></div>`;
+  } else $('#countdown').innerHTML = '';
+
+  // 今日
+  const doneCount = items.filter(isDone).length;
+  $('#todayCount').textContent = items.length ? `${doneCount} / ${items.length}` : '';
+  const all = items.length > 0 && doneCount === items.length;
+  if (!items.length) $('#todayList').innerHTML = '<div class="empty">今天沒有排功課，好好休息 😊</div>';
+  else $('#todayList').innerHTML = (all ? `<div class="alldone"><div class="big">🎉 今天全部完成！</div><p>${esc(CONFIG.KID_NAME)}好棒！</p></div>` : '') + items.map(itemHTML).join('');
+
+  // 積欠
+  const pending = backlog.filter((it) => !isDone(it));
+  $('#backlogSec').style.display = pending.length ? '' : 'none';
+  $('#backlogCount').textContent = pending.length;
+  $('#backlogList').innerHTML = pending.map(itemHTML).join('');
+
+  // 進度條
+  const subj = {};
+  for (const r of DATA.master) {
+    const s = r['科目']; if (!s) continue;
+    subj[s] = subj[s] || { total: 0, done: 0 };
+    subj[s].total++;
+    const st = STATE[masterId(r)];
+    if (st ? st.done : r['狀態'] === '完成') subj[s].done++;
+  }
+  const keys = Object.keys(subj).sort((a, b) => SUBJECT_COLORS.indexOf(a) - SUBJECT_COLORS.indexOf(b));
+  $('#progressSec').style.display = keys.length ? '' : 'none';
+  $('#progress').innerHTML = keys.map((s) => { const p = subj[s], pct = Math.round((p.done / p.total) * 100); return `<div class="prow"><span class="chip" style="background:${subjClass(s)}">${esc(s)}</span><div class="bar"><i style="width:${pct}%;background:${subjClass(s)}"></i></div><span class="pct">${p.done}/${p.total}</span></div>`; }).join('');
+
+  // 近期大事
+  const evs = DATA.events.map((e) => ({ ...e, d: parseDate(e['日期'], d) })).filter((e) => e.d && daysBetween(d, e.d) >= 0 && daysBetween(d, e.d) <= CONFIG.EVENTS_AHEAD_DAYS).sort((a, b) => a.d - b.d);
+  $('#eventsSec').style.display = evs.length ? '' : 'none';
+  $('#events').innerHTML = evs.map((e) => `<div class="ev"><span class="d">${esc(fmtDate(e.d, d))}</span><span>${esc(e['事件'])}</span><span class="t ${(e['類型'] || '').indexOf('考') >= 0 ? 'exam' : ''}">${esc(e['類型'] || '')}</span></div>`).join('');
+
+  // 慶祝（每天一次）
+  if (all && store('celebrated') !== ymd(d) && justToggled) { store('celebrated', ymd(d)); party(); }
+
+  $('#ver').textContent = `版本 ${CONFIG.VERSION}`;
+  if (DATA.fetchedAt) { const t = new Date(DATA.fetchedAt); $('#updatedAt').textContent = `資料更新：${t.getMonth() + 1}/${t.getDate()} ${pad(t.getHours())}:${pad(t.getMinutes())}${DATA.stale ? '（離線，顯示上次的資料）' : ''}`; }
+  renderSync();
+  ALL_ITEMS = [...items, ...backlog];
+}
+
+let ALL_ITEMS = [], justToggled = false;
+function toggle(id) {
+  const it = ALL_ITEMS.find((x) => x.id === id); if (!it) return;
+  const next = !isDone(it); const ts = new Date().toISOString();
+  STATE[it.id] = { done: next, ts };
+  const ls = localState(); ls[it.id] = { done: next, ts }; store('done-state', ls);
+  enqueue({ ts, date: ymd(TODAY), id: it.id, action: next ? '完成' : '取消', name: `${it.subject}｜${it.label}` });
+  if (navigator.vibrate) navigator.vibrate(next ? 30 : 10);
+  justToggled = true; render(); justToggled = false;
+}
+document.addEventListener('click', (e) => {
+  const row = e.target.closest('.item'); if (row) toggle(row.dataset.id);
+});
+
+function party() {
+  const p = $('#party'); p.classList.add('show');
+  $('#partyMsg').textContent = `${CONFIG.KID_NAME}今天的功課都做完了，太棒了！`;
+  const colors = ['#ff7b7b', '#4f9dff', '#f6b73c', '#45c58a', '#9b7bff', '#e07bbf'];
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('i'); c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw'; c.style.background = colors[i % colors.length];
+    c.style.animationDuration = 2 + Math.random() * 2 + 's'; c.style.animationDelay = Math.random() * 1.5 + 's';
+    p.appendChild(c); setTimeout(() => c.remove(), 5000);
+  }
+}
+$('#partyClose').onclick = () => $('#party').classList.remove('show');
+
+/* ---------- 載入流程 ---------- */
+async function refresh() {
+  const btn = $('#refreshBtn'); btn.classList.add('spin');
+  TODAY = todayDate();
+  if (!configured()) {
+    $('#notice').innerHTML = `<div class="notice">還沒設定 Google Sheet。請打開 <code>index.html</code>，在 CONFIG 填入 <code>SHEET_ID</code>（或 <code>PUBLISHED_ID</code>）。<br>想先看看長什麼樣子，可以在網址後面加 <code>?demo=1</code>。</div>`;
+    const cache = store('data-cache'); if (cache) { DATA = { ...cache, stale: true }; STATE = mergedState(DATA.log); render(); }
+    else $('#todayList').innerHTML = '<div class="empty">尚未設定資料來源</div>';
+    btn.classList.remove('spin'); return;
+  }
+  try {
+    DATA = await loadAll(); $('#notice').innerHTML = '';
+  } catch (e) {
+    const cache = store('data-cache');
+    if (cache) { DATA = { ...cache, stale: true }; $('#notice').innerHTML = `<div class="notice">現在連不上 Google Sheet，先顯示上次的資料。<br><small>${esc(e.message)}</small></div>`; }
+    else { $('#notice').innerHTML = `<div class="notice">讀不到資料：${esc(e.message)}</div>`; $('#todayList').innerHTML = '<div class="empty">請檢查網路或 Sheet 設定</div>'; btn.classList.remove('spin'); return; }
+  }
+  STATE = mergedState(DATA.log);
+  render();
+  flushQueue();
+  btn.classList.remove('spin');
+}
+$('#refreshBtn').onclick = refresh;
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });
+window.addEventListener('online', flushQueue);
+window.addEventListener('pageshow', (e) => { if (e.persisted) refresh(); });
+// 跨日自動換頁（放著不關的情況）
+setInterval(() => { if (ymd(todayDate()) !== ymd(TODAY)) refresh(); }, 60000);
+refresh();
+</script>
+</body>
+</html>
