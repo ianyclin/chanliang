@@ -212,6 +212,14 @@
   .pastbtn { display: block; width: 100%; border: 0; background: transparent; color: var(--muted); font-size: 16px; font-weight: 800; padding: 10px; font-family: inherit; cursor: pointer; }
   #pastDays { display: none; } #pastDays.on { display: block; }
   #pastDays .day { opacity: .75; }
+  .item.late { background: #d8383d; border-bottom-color: rgba(255,255,255,.28); }
+  .item.late:active { background: #c42f34; }
+  .item.late .label { color: #fff; }
+  .item.late .label .sub { color: #ffd6d6; }
+  .item.late .box { border-color: #fff; }
+  .item.late .chip { box-shadow: 0 0 0 2px #fff; }
+  .item.late .mv { background: #fff; color: #b3282d; }
+  .item.late .moved, .item.late .extra { background: #fff; }
   .day.quiet { margin-bottom: 10px; }
   .day.quiet .dayh .dn { font-size: 17px; }
   .quietline { padding: 10px 16px; color: #b0a994; font-size: 15px; font-weight: 600; }
@@ -283,7 +291,7 @@
     <button class="share" id="shareBtn">📤 分享給爸媽</button>
     <section>
       <h2>🗓️ 接下來每一天</h2>
-      <div class="legend">提前做完可以直接勾。灰色的是每天固定的事；紅色日期是過期還沒做的。</div>
+      <div class="legend">提前做完可以直接勾。灰色的是每天固定的事；紅底的是過期還沒做的。</div>
       <button class="pastbtn" id="pastBtn">▸ 看之前 7 天</button>
       <div id="pastDays"></div>
       <div id="planDays"></div>
@@ -314,7 +322,7 @@
 /* ===================== 設定（家長只需要改這裡） ===================== */
 const CONFIG = {
   // 顯示在頁面角落的版本號，每次改檔案就改一下，方便確認 iPad 拿到新版
-  VERSION: '2026.10.25b',
+  VERSION: '2026.10.28a',
 
   // 讀取方式：
   //   'repo'：讀這個網站自己的 data/*.csv（預設，零設定；改計畫就改 CSV 推上去）
@@ -591,7 +599,7 @@ function itemHTML(it, opts = {}) {
   const done = isDone(it);
   const movedTag = (it.extra ? '<span class="extra">新增</span>' : '') + (it.moved ? `<span class="moved">改過・原本 ${esc(shortDate(it.orig))}</span>` : '');
   const mvBtn = opts.movable && it.kind === 'master' && !done ? `<button class="mv" data-move="${esc(it.id)}">改天</button>` : '';
-  return `<div class="item ${done ? 'done' : ''} ${done && it.id === JUST_ID ? 'just' : ''} ${it.routine ? 'routine' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
+  return `<div class="item ${done ? 'done' : ''} ${done && it.id === JUST_ID ? 'just' : ''} ${it.routine ? 'routine' : ''} ${opts.late && !done && !it.routine ? 'late' : ''}" data-id="${esc(it.id)}" role="checkbox" aria-checked="${done}">
     <div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>
     <span class="chip" style="background:${subjClass(it.subject)}">${esc(it.subject)}</span>
     <div class="label">${esc(it.label)}${movedTag}${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}</div>${mvBtn}
@@ -655,10 +663,12 @@ function render() {
   for (const e of evs) { if (e.d > last && daysBetween(d, e.d) <= 45) last = e.d; }
   if (daysBetween(d, last) > 45) last = addDays(d, 45);
   const days = [];
-  // 過期未完成的先列
-  const lateByDate = {};
-  for (const it of pending) { if (it.kind !== 'master') continue; (lateByDate[it.date] = lateByDate[it.date] || []).push({ ...it, sub: it.note || '' }); }
-  for (const ds of Object.keys(lateByDate).sort()) days.push({ d: new Date(ds + 'T00:00:00'), list: lateByDate[ds], late: true });
+  // 過期還沒做完的日子：放回它原本那天，未完成的項目用紅底白字
+  const lateDates = [...new Set(pending.map((it) => it.date))].filter((ds) => ds < todayStr).sort();
+  for (const ds of lateDates) {
+    const dd = new Date(ds + 'T00:00:00');
+    days.push({ d: dd, list: itemsForDate(DATA, dd, d).filter((x) => !x.routine || isDone(x)), ev: evs.filter((e) => ymd(e.d) === ds), late: true });
+  }
   for (let i = 0; i <= daysBetween(d, last); i++) {
     const dd = addDays(d, i), ds = ymd(dd);
     const list = itemsForDate(DATA, dd, d);
@@ -668,13 +678,15 @@ function render() {
   // 之前 7 天（收合）
   const past = [];
   for (let i = 7; i >= 1; i--) {
-    const dd = addDays(d, -i), list = itemsForDate(DATA, dd, d).filter((x) => !x.routine || isDone(x));
+    const dd = addDays(d, -i); if (lateDates.includes(ymd(dd))) continue;   // 還沒做完的已經在上面，不重複列
+    const list = itemsForDate(DATA, dd, d).filter((x) => !x.routine || isDone(x));
     const ev = evs.filter((e) => ymd(e.d) === ymd(dd));
     if (list.length || ev.length) past.push({ d: dd, list, ev, late: false, past: true });
   }
-  $('#pastDays').innerHTML = past.map(dayHTML).join('') || '<div class="card"><div class="empty">之前沒有紀錄</div></div>';
+  $('#pastDays').innerHTML = past.map(dayHTML).join('') || '<div class="card"><div class="empty">沒有已完成的紀錄</div></div>';
   $('#pastDays').classList.toggle('on', !!store('show-past'));
-  $('#pastBtn').textContent = (store('show-past') ? '▾ 收起之前 7 天' : '▸ 看之前 7 天');
+  $('#pastBtn').textContent = (store('show-past') ? '▾ 收起已完成的前幾天' : '▸ 看已完成的前幾天');
+  $('#pastBtn').style.display = past.length ? '' : 'none';
   $('#planDays').innerHTML = days.map(dayHTML).join('') || '<div class="card"><div class="empty">還沒有排任何計畫</div></div>';
   function dayHTML(day) {
     const ds = ymd(day.d), isToday = ds === todayStr;
@@ -684,7 +696,7 @@ function render() {
       const routine = day.list.map((x) => esc(x.label)).join('、');
       return `<div class="day quiet">${head}<div class="card"><div class="quietline">沒有排功課${routine ? `・只有 ${routine}` : ''}</div></div></div>`;
     }
-    const body = day.list.length ? day.list.map((it) => itemHTML(it, { movable: !day.past })).join('') : '<div class="empty">沒有排功課</div>';
+    const body = day.list.length ? day.list.map((it) => itemHTML(it, { movable: !day.past, late: day.late })).join('') : '<div class="empty">沒有排功課</div>';
     return `<div class="day">${head}<div class="card">${body}</div></div>`;
   }
 
