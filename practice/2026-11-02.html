@@ -8,7 +8,11 @@
   .q { margin: 14px 0 26px; } .q b { margin-right: 6px; } .opt { margin-left: 2em; letter-spacing: 1px; }
   .vert { font-family: ui-monospace, Menlo, monospace; display: inline-block; text-align: right; margin: 6px 0 0 2em; line-height: 1.4; font-size: 22px; }
   .vert .line { border-top: 2px solid #222; }
-  .ans { page-break-before: always; } .ans li { margin-bottom: 10px; font-size: 18px; }
+  .cut { margin: 40px 0 0; padding-top: 18px; border-top: 3px dashed #bbb; text-align: center; color: #888; font-size: 17px; font-weight: 700; }
+  .reveal { display: block; margin: 14px auto 0; border: 0; background: #e9731f; color: #fff; font-size: 18px; font-weight: 800; padding: 12px 28px; border-radius: 999px; font-family: inherit; cursor: pointer; }
+  .ans { display: none; background: #faf6ee; border-radius: 16px; padding: 4px 20px 12px; margin-top: 16px; }
+  .ans.show { display: block; } .ans li { margin-bottom: 10px; font-size: 18px; }
+  @media print { .reveal, .cut { display: none; } .ans { display: block; page-break-before: always; background: none; } }
   @media print { body { font-size: 18px; } }
 </style></head><body>
 <h1>數學練習（11/2 錯題延伸）</h1>
@@ -41,8 +45,10 @@
 <div class="q"><b>9.</b>（　）小明把加數 235 看成 253，算出 640。原來的正確答案是多少？<br>
 <span class="opt">① 387　② 622　③ 658　④ 405</span></div>
 
+<div class="cut">✂ 上面是題目，下面是解答。寫完再看！
+<button class="reveal" onclick="var a=document.querySelector('.ans');a.classList.toggle('show');this.textContent=a.classList.contains('show')?'收起解答':'寫完了，看解答';">寫完了，看解答</button></div>
 <div class="ans">
-<h2>解答（給爸媽）</h2>
+<h2>解答</h2>
 <ol>
 <li>③ 5。3171 ÷ 7 = 453。驗算 453 × 7 = 3171。</li>
 <li>② 7。2208 ÷ 8 = 276。驗算 276 × 8 = 2208。</li>
