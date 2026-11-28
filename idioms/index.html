@@ -259,11 +259,11 @@ function renderEntry(w) {
   if (k) {
     h += `<div class="card kid"><div class="lbl">🌱 小學生版（家長和 Claude 寫的）</div>
       <div class="say">${esc(k.話)}</div>
-      <img class="comic hide" src="comics/${encodeURIComponent(w)}.png" alt="${esc(w)}四格漫畫" onload="this.classList.remove('hide')" onerror="this.remove()">
+      <img class="comic hide" src="comics/${encodeURIComponent(w)}.jpg" alt="${esc(w)}四格漫畫" onload="this.classList.remove('hide')" onerror="this.remove()">
       ${k.故事?.length ? `<div class="lbl">📖 故事</div><ol>${k.故事.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
       ${k.例?.length ? `<div class="lbl">✏️ 可以這樣用</div>${k.例.map((s) => `<div class="ex">${esc(s)}</div>`).join('')}` : ''}
       ${k.提醒 ? `<div class="tip">💡 ${esc(k.提醒)}</div>` : ''}
-      ${k.畫?.length ? `<details class="prompt"><summary>🎨 四格漫畫指令（給大人）</summary><textarea readonly rows="8">${esc(comicPrompt(w, k))}</textarea><button class="chip" onclick="copyPrompt(this)">複製</button> <span class="src">貼到 ChatGPT，畫好存成 comics/${esc(w)}.png</span></details>` : ''}</div>`;
+      ${k.畫?.length ? `<details class="prompt"><summary>🎨 四格漫畫指令（給大人）</summary><textarea readonly rows="8">${esc(comicPrompt(w, k))}</textarea><button class="chip" onclick="copyPrompt(this)">複製</button> <span class="src">貼到 ChatGPT，畫好存成 comics/${esc(w)}.jpg</span></details>` : ''}</div>`;
   } else {
     h += `<div class="card nokid">這個成語還沒有小學生版。下面是成語典的原文，可以請爸爸媽媽一起看。</div>`;
   }
