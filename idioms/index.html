@@ -82,7 +82,12 @@
   .nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; }
   footer { margin-top: 30px; font-size: 13px; color: var(--muted); line-height: 1.6; }
   .hide { display: none !important; }
-  .comic { display: block; width: 100%; max-width: 620px; margin: 6px auto 12px; border-radius: 14px; box-shadow: var(--shadow); }
+  .rows { margin: 6px 0 10px; }
+  .srow { display: flex; gap: 14px; align-items: center; background: #fff; border-radius: 16px; padding: 10px; margin-bottom: 10px; }
+  .srow .pic { flex: 0 0 46%; max-width: 300px; aspect-ratio: 1; border-radius: 12px; background-repeat: no-repeat; background-size: 200% 200%; box-shadow: var(--shadow); }
+  .srow .txt { flex: 1; font-size: 20px; line-height: 1.6; }
+  .srow .num { display: inline-block; background: var(--kid); color: #fff; border-radius: 50%; width: 28px; height: 28px; text-align: center; line-height: 28px; font-size: 16px; font-weight: 800; margin-right: 6px; }
+  @media (max-width: 480px) { .srow .txt { font-size: 17px; } }
   .prompt { margin-top: 12px; }
   .prompt summary { color: var(--kid); font-size: 15px; }
   .prompt textarea { width: 100%; font-size: 14px; border-radius: 10px; border: 1px solid #bfe6cf; padding: 8px; font-family: inherit; margin: 6px 0; -webkit-user-select: text; user-select: text; }
@@ -248,6 +253,14 @@ function copyPrompt(btn) {
   (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => { btn.textContent = '已複製 ✓'; }, () => { document.execCommand('copy'); btn.textContent = '已複製 ✓'; });
 }
 
+function comicRows(img) { // 四格漫畫切成四塊，每一格放在對應那句的左邊
+  const ol = img.parentNode.querySelector('ol.story'); if (!ol) return;
+  const pos = ['0% 0%', '100% 0%', '0% 100%', '100% 100%'];
+  const rows = document.createElement('div'); rows.className = 'rows';
+  rows.innerHTML = [...ol.children].map((li, i) => `<div class="srow"><div class="pic" role="img" aria-label="第 ${i + 1} 格" style="background-image:url('${img.src}');background-position:${pos[i]}"></div><div class="txt"><span class="num">${i + 1}</span>${li.innerHTML}</div></div>`).join('');
+  ol.replaceWith(rows); img.remove();
+}
+
 let cur = null;
 function renderEntry(w) {
   const e = E[w]; cur = w;
@@ -259,8 +272,8 @@ function renderEntry(w) {
   if (k) {
     h += `<div class="card kid"><div class="lbl">🌱 小學生版（家長和 Claude 寫的）</div>
       <div class="say">${esc(k.話)}</div>
-      <img class="comic hide" src="comics/${encodeURIComponent(w)}.jpg" alt="${esc(w)}四格漫畫" onload="this.classList.remove('hide')" onerror="this.remove()">
-      ${k.故事?.length ? `<div class="lbl">📖 故事</div><ol>${k.故事.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
+      ${k.故事?.length ? `<div class="lbl">📖 故事</div><ol class="story">${k.故事.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
+      ${k.故事?.length === 4 ? `<img class="hide" src="comics/${encodeURIComponent(w)}.jpg" alt="" onload="comicRows(this)" onerror="this.remove()">` : ''}
       ${k.例?.length ? `<div class="lbl">✏️ 可以這樣用</div>${k.例.map((s) => `<div class="ex">${esc(s)}</div>`).join('')}` : ''}
       ${k.提醒 ? `<div class="tip">💡 ${esc(k.提醒)}</div>` : ''}
       ${k.畫?.length ? `<details class="prompt"><summary>🎨 四格漫畫指令（給大人）</summary><textarea readonly rows="8">${esc(comicPrompt(w, k))}</textarea><button class="chip" onclick="copyPrompt(this)">複製</button> <span class="src">貼到 ChatGPT，畫好存成 comics/${esc(w)}.jpg</span></details>` : ''}</div>`;
