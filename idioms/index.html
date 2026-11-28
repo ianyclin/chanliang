@@ -111,7 +111,6 @@
     <div class="search"><input id="q" type="search" placeholder="打字、注音或意思都可以" autocomplete="off"></div>
     <div class="chips" id="filters">
       <button class="chip on" data-f="all">全部</button>
-      <button class="chip" data-f="kid">有小學生版</button>
       <button class="chip" data-f="rand">🎲 隨便抽一個</button>
     </div>
     <div class="hint" id="count"></div>
@@ -212,12 +211,12 @@ function search(q) {
 function renderList() {
   const q = $('#q').value, res = search(q);
   if (!q.trim() && filter === 'all') {
-    $('#count').textContent = `成語典的主要成語共 ${D.entries.length} 個，其中 ${Object.keys(K).filter((k) => E[k]).length} 個有小學生版。`;
+    $('#count').textContent = `成語典的主要成語共 ${D.entries.length} 個，每一個都有小學生版。`;
     $('#list').innerHTML = ''; $('#list').classList.add('hide'); return;
   }
   $('#list').classList.remove('hide');
   $('#count').textContent = res.length ? `找到 ${res.length} 個${res.length > 80 ? '，先列前 80 個' : ''}` : '找不到，換個字試試看';
-  $('#list').innerHTML = res.slice(0, 80).map((e) => `<a class="row" href="#${encodeURIComponent(e.w)}"><span class="w">${esc(e.w)}</span>${K[e.w] ? '<span class="badge b-kid">小學生版</span>' : ''}${WEEK.includes(e.w) ? '<span class="badge b-week">本週</span>' : ''}<span class="m">${esc(meaning(e))}</span></a>`).join('');
+  $('#list').innerHTML = res.slice(0, 80).map((e) => `<a class="row" href="#${encodeURIComponent(e.w)}"><span class="w">${esc(e.w)}</span>${WEEK.includes(e.w) ? '<span class="badge b-week">本週</span>' : ''}<span class="m">${esc(meaning(e))}</span></a>`).join('');
 }
 
 function chip(n, cls) {
