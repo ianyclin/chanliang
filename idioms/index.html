@@ -82,6 +82,10 @@
   .nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; }
   footer { margin-top: 30px; font-size: 13px; color: var(--muted); line-height: 1.6; }
   .hide { display: none !important; }
+  .comic { display: block; width: 100%; max-width: 620px; margin: 6px auto 12px; border-radius: 14px; box-shadow: var(--shadow); }
+  .prompt { margin-top: 12px; }
+  .prompt summary { color: var(--kid); font-size: 15px; }
+  .prompt textarea { width: 100%; font-size: 14px; border-radius: 10px; border: 1px solid #bfe6cf; padding: 8px; font-family: inherit; margin: 6px 0; -webkit-user-select: text; user-select: text; }
 </style>
 </head>
 <body>
@@ -235,6 +239,15 @@ function cmpTable(rows) {
     ${body.map((r) => `<tr>${r.slice(0, head.length).map((x) => `<td>${mark(x)}</td>`).join('')}<td class="s">${esc(r.slice(head.length).join(' '))}</td></tr>`).join('')}</table>`;
 }
 
+const COMIC_STYLE = '請畫一張四格漫畫：2×2 方形排列，順序是左上、右上、左下、右下，每格左上角標一個小小的數字 1～4。風格：Q 版古裝兒童繪本風，粗而圓潤的黑色線條，水彩加色鉛筆上色，暖色背景，人物大頭圓臉、表情生動可愛，適合國小三年級的小朋友。畫面裡不要出現任何文字、對話框或招牌字（格子編號除外），不要血腥或嚇人的畫面。同一個角色在四格裡的長相和衣服要一致。';
+function comicPrompt(w, k) {
+  return `${COMIC_STYLE}\n\n這是成語「${w}」的故事（${k.話}）：\n` + k.畫.map((x, i) => `第 ${i + 1} 格：${x}`).join('\n');
+}
+function copyPrompt(btn) {
+  const t = btn.previousElementSibling; t.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => { btn.textContent = '已複製 ✓'; }, () => { document.execCommand('copy'); btn.textContent = '已複製 ✓'; });
+}
+
 let cur = null;
 function renderEntry(w) {
   const e = E[w]; cur = w;
@@ -246,9 +259,11 @@ function renderEntry(w) {
   if (k) {
     h += `<div class="card kid"><div class="lbl">🌱 小學生版（家長和 Claude 寫的）</div>
       <div class="say">${esc(k.話)}</div>
+      <img class="comic hide" src="comics/${encodeURIComponent(w)}.png" alt="${esc(w)}四格漫畫" onload="this.classList.remove('hide')" onerror="this.remove()">
       ${k.故事?.length ? `<div class="lbl">📖 故事</div><ol>${k.故事.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
       ${k.例?.length ? `<div class="lbl">✏️ 可以這樣用</div>${k.例.map((s) => `<div class="ex">${esc(s)}</div>`).join('')}` : ''}
-      ${k.提醒 ? `<div class="tip">💡 ${esc(k.提醒)}</div>` : ''}</div>`;
+      ${k.提醒 ? `<div class="tip">💡 ${esc(k.提醒)}</div>` : ''}
+      ${k.畫?.length ? `<details class="prompt"><summary>🎨 四格漫畫指令（給大人）</summary><textarea readonly rows="8">${esc(comicPrompt(w, k))}</textarea><button class="chip" onclick="copyPrompt(this)">複製</button> <span class="src">貼到 ChatGPT，畫好存成 comics/${esc(w)}.png</span></details>` : ''}</div>`;
   } else {
     h += `<div class="card nokid">這個成語還沒有小學生版。下面是成語典的原文，可以請爸爸媽媽一起看。</div>`;
   }
