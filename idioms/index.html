@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>展諒的成語</title>
+<link rel="apple-touch-icon" href="../icon.png">
+<link rel="icon" type="image/png" href="../favicon.png">
+<style>
+  :root {
+    --bg: #fff8ec; --card: #fff; --ink: #2b2a33; --muted: #7a7788; --line: #efe6d3;
+    --accent: #e9731f; --accent-ink: #7a3a0c; --red: #b8322f; --red-bg: #fdecec;
+    --kid: #1f7a55; --kid-bg: #e8f6ee; --blue: #2a5fb0; --blue-bg: #e9f0fb;
+    --shadow: 0 4px 16px rgba(80, 60, 20, .08); --radius: 20px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-size: 19px; line-height: 1.6;
+    font-family: -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 16px 16px 60px; }
+  a { color: var(--blue); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .back { color: var(--accent-ink); font-weight: 700; text-decoration: none; font-size: 17px; }
+  h1 { font-size: 28px; margin: 6px 0 12px; }
+  h2 { font-size: 17px; color: var(--muted); font-weight: 800; margin: 22px 4px 8px; letter-spacing: 1px; }
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 12px; }
+  .week { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .wk { background: linear-gradient(135deg, #ffe0c2, #ffd1dc); border-radius: 18px; padding: 14px; text-decoration: none; color: #5a2a0a; box-shadow: var(--shadow); }
+  .wk b { display: block; font-size: 26px; letter-spacing: 2px; }
+  .wk span { font-size: 15px; color: #7a4a2a; }
+  .search { display: flex; gap: 8px; }
+  .search input { flex: 1; font-size: 22px; padding: 12px 16px; border-radius: 16px; border: 2px solid var(--line); background: #fff; min-width: 0; }
+  .search input:focus { outline: none; border-color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+  .chip { border: 0; border-radius: 999px; padding: 6px 14px; font-size: 16px; background: #fff; color: var(--ink); box-shadow: var(--shadow); cursor: pointer; font-family: inherit; }
+  .chip.on { background: var(--accent); color: #fff; }
+  .hint { color: var(--muted); font-size: 15px; margin: 6px 4px; }
+  .list a.row { display: flex; align-items: baseline; gap: 10px; padding: 12px 16px; text-decoration: none; color: inherit; border-bottom: 1px solid var(--line); }
+  .list a.row:last-child { border-bottom: 0; }
+  .list .w { font-size: 22px; font-weight: 800; letter-spacing: 1px; white-space: nowrap; }
+  .list .m { color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+  .badge { font-size: 12px; border-radius: 8px; padding: 1px 7px; font-weight: 700; white-space: nowrap; }
+  .b-kid { background: var(--kid-bg); color: var(--kid); }
+  .b-week { background: #ffe3cc; color: var(--accent-ink); }
+
+  /* 單一成語 */
+  .word { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 8px 0 4px; }
+  .ch { display: inline-flex; flex-direction: column; align-items: center; }
+  .ch .z { font-size: 15px; color: var(--muted); min-height: 22px; }
+  .ch .c { font-size: 46px; font-weight: 900; line-height: 1.15; }
+  .py { color: var(--muted); font-size: 15px; }
+  .variant { color: var(--muted); font-size: 14px; }
+  .kid { background: var(--kid-bg); border: 2px solid #bfe6cf; }
+  .kid .lbl { font-size: 13px; color: var(--kid); font-weight: 800; letter-spacing: 1px; }
+  .kid .say { font-size: 23px; font-weight: 800; margin: 4px 0 10px; color: #154d37; }
+  .kid ol { margin: 0 0 8px; padding-left: 1.4em; }
+  .kid ol li { margin-bottom: 4px; }
+  .kid .ex { background: #fff; border-radius: 12px; padding: 8px 12px; margin: 6px 0; }
+  .kid .tip { font-size: 16px; color: #2f6a4f; margin-top: 8px; }
+  .nokid { background: #f6f3ec; color: var(--muted); font-size: 16px; }
+  .off { border-top: 6px solid var(--red); }
+  .off .lbl { font-size: 13px; color: var(--red); font-weight: 800; letter-spacing: 1px; }
+  .off h3 { font-size: 17px; margin: 14px 0 4px; color: var(--red); }
+  .sense { border-left: 4px solid var(--line); padding-left: 12px; margin: 10px 0; }
+  .sense .cat { color: var(--muted); font-size: 15px; }
+  .sense ul { margin: 6px 0; padding-left: 1.2em; }
+  .more { border: 0; background: none; color: var(--blue); font-size: 15px; padding: 0; cursor: pointer; font-family: inherit; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+  .lk { padding: 4px 12px; border-radius: 999px; font-size: 17px; text-decoration: none; font-weight: 700; }
+  .lk.syn { background: var(--blue-bg); color: var(--blue); }
+  .lk.ant { background: var(--red-bg); color: var(--red); }
+  .lk.ref { background: #f1ede4; color: #6b5b3e; }
+  .lk.dead { background: #f3f3f3; color: #999; font-weight: 400; }
+  .lk small { font-weight: 400; font-size: 12px; margin-left: 3px; }
+  table.cmp { border-collapse: collapse; width: 100%; font-size: 16px; margin: 6px 0; }
+  table.cmp th, table.cmp td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; }
+  table.cmp td.s { text-align: left; }
+  table.cmp .ok { color: var(--kid); font-weight: 900; }
+  table.cmp .no { color: var(--red); font-weight: 900; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; font-weight: 700; color: var(--red); font-size: 17px; }
+  .src { font-size: 14px; color: var(--muted); }
+  .nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; }
+  footer { margin-top: 30px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="../">← 回今日清單</a>
+    <a class="back" href="#" id="homeLink">🔎 找成語</a>
+  </div>
+
+  <div id="home">
+    <h1>📚 成語</h1>
+    <div id="weekSec" class="hide">
+      <h2 id="weekTitle">⭐ 本週成語</h2>
+      <div class="week" id="week"></div>
+      <div class="hint">週末作文挑一個用進去！</div>
+    </div>
+    <h2>🔎 找成語</h2>
+    <div class="search"><input id="q" type="search" placeholder="打字、注音或意思都可以" autocomplete="off"></div>
+    <div class="chips" id="filters">
+      <button class="chip on" data-f="all">全部</button>
+      <button class="chip" data-f="kid">有小學生版</button>
+      <button class="chip" data-f="book">課本</button>
+      <button class="chip" data-f="rand">🎲 隨便抽一個</button>
+    </div>
+    <div class="hint" id="count"></div>
+    <div class="card list" id="list" style="padding:0"></div>
+  </div>
+
+  <div id="entry" class="hide"></div>
+
+  <footer>
+    紅框內容引用自教育部《成語典》（<a href="https://dict.idioms.moe.edu.tw/" target="_blank" rel="noopener">dict.idioms.moe.edu.tw</a>，資料版本 <span id="dver"></span>），依「創用CC 姓名標示－禁止改作 3.0 臺灣」授權原文照錄。<br>
+    綠框「小學生版」是家長和 Claude 自己寫的說明，不是成語典的內容。
+  </footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const TONES = /[ˊˇˋ˙\s　]/g;
+let D, E = {}, K = {}, ALIAS = {}, WEEK = [], BOOK = {}, BACK = {}, filter = 'all';
+
+function parseCSV(t) {
+  const rows = t.replace(/^﻿/, '').trim().split(/\r?\n/).map((l) => l.split(','));
+  const h = rows.shift() || [];
+  return rows.map((r) => Object.fromEntries(h.map((k, i) => [k.trim(), (r[i] || '').trim()])));
+}
+function todayDate() {
+  const p = new URLSearchParams(location.search).get('date');
+  const d = p ? new Date(p + 'T00:00:00') : new Date();
+  d.setHours(0, 0, 0, 0); return d;
+}
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+async function load() {
+  const bust = 'v=' + Date.now();
+  const [d, k, wk, bk] = await Promise.all([
+    fetch('data.json').then((r) => r.json()),
+    fetch('kids.json?' + bust).then((r) => r.json()).catch(() => ({})),
+    fetch('../data/成語週.csv?' + bust).then((r) => r.ok ? r.text() : '').catch(() => ''),
+    fetch('../data/成語課本.csv?' + bust).then((r) => r.ok ? r.text() : '').catch(() => ''),
+  ]);
+  d.entries.sort((a, b) => (a.k < b.k ? -1 : a.k > b.k ? 1 : 0)); // 照注音排，上一個／下一個比較好找
+  D = d; K = k; ALIAS = d.alias;
+  d.entries.forEach((e) => { E[e.w] = e; });
+  // 反向連結：誰把我列為近義/反義
+  d.entries.forEach((e) => {
+    for (const [key, arr] of [['近', e.近], ['反', e.反]]) for (const n of arr) {
+      const t = resolve(n); if (!t || t === e.w) continue;
+      (BACK[t] ||= { 近: new Set(), 反: new Set() })[key].add(e.w);
+    }
+  });
+  parseCSV(bk).forEach((r) => { const w = resolve(r['成語']); if (w) BOOK[w] = `${r['冊別'] || ''} ${r['課次'] || ''}`.trim(); });
+  // 本週：週一日期 <= 今天 的最後一週，且在 7 天內
+  const t = todayDate(), rows = parseCSV(wk).filter((r) => r['週一'] && r['成語']);
+  const mondays = [...new Set(rows.map((r) => r['週一']))].sort().filter((m) => new Date(m + 'T00:00:00') <= t);
+  let cur = mondays[mondays.length - 1];
+  if (cur && (t - new Date(cur + 'T00:00:00')) / 864e5 >= 7) cur = null;
+  if (!cur) { // 還沒到第一週：顯示最近的下一週
+    const next = [...new Set(rows.map((r) => r['週一']))].sort().find((m) => new Date(m + 'T00:00:00') > t);
+    if (next) { cur = next; $('#weekTitle').textContent = `⭐ 下週成語（${next.slice(5).replace('-', '/')} 起）`; }
+  }
+  WEEK = rows.filter((r) => r['週一'] === cur).map((r) => resolve(r['成語'])).filter(Boolean);
+  $('#dver').textContent = d.version;
+  renderWeek(); renderList(); route();
+}
+function resolve(n) { n = (n || '').trim(); return E[n] ? n : (ALIAS[n] && E[ALIAS[n]] ? ALIAS[n] : null); }
+function meaning(e) { const k = K[e.w]; return k && k.話 ? k.話 : (e.用[0]?.義 || e.釋.split('\n')[0]); }
+
+function renderWeek() {
+  if (!WEEK.length) return;
+  $('#weekSec').classList.remove('hide');
+  $('#week').innerHTML = WEEK.map((w) => `<a class="wk" href="#${encodeURIComponent(w)}"><b>${esc(w)}</b><span>${esc(meaning(E[w]))}</span></a>`).join('');
+}
+
+function search(q) {
+  q = q.trim();
+  let list = D.entries;
+  if (filter === 'kid') list = list.filter((e) => K[e.w]);
+  if (filter === 'book') list = list.filter((e) => BOOK[e.w]);
+  if (!q) return filter === 'all' ? [] : list;
+  const qz = q.replace(TONES, '');
+  const isZy = /^[ㄅ-ㄩ]+$/.test(qz);
+  const aliasHits = new Set(Object.entries(ALIAS).filter(([a]) => a.includes(q)).map(([, m]) => m));
+  const scored = [];
+  for (const e of list) {
+    let s = 0;
+    if (e.w === q) s = 100;
+    else if (e.w.startsWith(q)) s = 80;
+    else if (e.w.includes(q)) s = 60;
+    else if (aliasHits.has(e.w)) s = 50;
+    else if (isZy && e.k.startsWith(qz)) s = 70;
+    else if (isZy && e.k.includes(qz)) s = 40;
+    else if (!isZy && q.length >= 2 && ((K[e.w]?.話 || '').includes(q) || e.用.some((u) => u.義.includes(q)))) s = 20;
+    else if (!isZy && q.length >= 2 && e.釋.includes(q)) s = 10;
+    if (s) scored.push([s + (K[e.w] ? 5 : 0), e]);
+  }
+  return scored.sort((a, b) => b[0] - a[0]).map((x) => x[1]);
+}
+function renderList() {
+  const q = $('#q').value, res = search(q);
+  if (!q.trim() && filter === 'all') {
+    $('#count').textContent = `成語典的主要成語共 ${D.entries.length} 個，其中 ${Object.keys(K).filter((k) => E[k]).length} 個有小學生版。`;
+    $('#list').innerHTML = ''; $('#list').classList.add('hide'); return;
+  }
+  $('#list').classList.remove('hide');
+  $('#count').textContent = res.length ? `找到 ${res.length} 個${res.length > 80 ? '，先列前 80 個' : ''}` : '找不到，換個字試試看';
+  $('#list').innerHTML = res.slice(0, 80).map((e) => `<a class="row" href="#${encodeURIComponent(e.w)}"><span class="w">${esc(e.w)}</span>${K[e.w] ? '<span class="badge b-kid">小學生版</span>' : ''}${WEEK.includes(e.w) ? '<span class="badge b-week">本週</span>' : ''}<span class="m">${esc(meaning(e))}</span></a>`).join('');
+}
+
+function chip(n, cls) {
+  const w = resolve(n);
+  if (!w) return `<span class="lk dead">${esc(n)}</span>`;
+  return `<a class="lk ${cls}" href="#${encodeURIComponent(w)}">${esc(n)}${w !== n ? `<small>→${esc(w)}</small>` : ''}</a>`;
+}
+function linkify(s) { // 成語典釋義裡的 △「某某」 交叉參照
+  return esc(s).replace(/「([^」]{2,12})」/g, (m, n) => resolve(n) && resolve(n) !== cur ? `「<a href="#${encodeURIComponent(resolve(n))}">${n}</a>」` : m).replace(/\n/g, '<br>');
+}
+function wordHTML(e) {
+  const chars = [...e.w], zy = e.zy.split('（變）')[0].trim().split(/[　\s]+/);
+  const ok = zy.length === chars.length;
+  return `<div class="word">${chars.map((c, i) => `<span class="ch"><span class="z">${ok ? esc(zy[i]) : ''}</span><span class="c">${esc(c)}</span></span>`).join('')}</div>
+    ${ok ? '' : `<div class="py">${esc(e.zy)}</div>`}
+    <div class="py">${esc(e.py.split('（變）')[0])}</div>
+    ${e.zy.includes('（變）') ? `<div class="variant">變音：${esc(e.zy.split('（變）')[1])}</div>` : ''}`;
+}
+function cmpTable(rows) {
+  if (rows.length < 2) return '';
+  const [head, ...body] = rows;
+  const mark = (x) => /[○〇]/.test(x) ? '<span class="ok">○ 可以</span>' : (/ㄨ|╳|×/.test(x) ? '<span class="no">ㄨ 不行</span>' : esc(x));
+  return `<table class="cmp"><tr>${head.map((h) => `<th>${chip(h, 'syn')}</th>`).join('')}<th>例句（∼ 放進成語）</th></tr>
+    ${body.map((r) => `<tr>${r.slice(0, head.length).map((x) => `<td>${mark(x)}</td>`).join('')}<td class="s">${esc(r.slice(head.length).join(' '))}</td></tr>`).join('')}</table>`;
+}
+
+let cur = null;
+function renderEntry(w) {
+  const e = E[w]; cur = w;
+  const k = K[w], back = BACK[w] || { 近: new Set(), 反: new Set() };
+  const extraSyn = [...back.近].filter((x) => !e.近.some((n) => resolve(n) === x));
+  const extraAnt = [...back.反].filter((x) => !e.反.some((n) => resolve(n) === x));
+  const idx = D.entries.indexOf(e), prev = D.entries[idx - 1], next = D.entries[idx + 1];
+  let h = `${wordHTML(e)}<div class="links">${WEEK.includes(w) ? '<span class="badge b-week">本週成語</span>' : ''}${BOOK[w] ? `<span class="badge b-week">課本：${esc(BOOK[w])}</span>` : ''}</div>`;
+  if (k) {
+    h += `<div class="card kid"><div class="lbl">🌱 小學生版（家長和 Claude 寫的）</div>
+      <div class="say">${esc(k.話)}</div>
+      ${k.故事?.length ? `<div class="lbl">📖 故事</div><ol>${k.故事.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
+      ${k.例?.length ? `<div class="lbl">✏️ 可以這樣用</div>${k.例.map((s) => `<div class="ex">${esc(s)}</div>`).join('')}` : ''}
+      ${k.提醒 ? `<div class="tip">💡 ${esc(k.提醒)}</div>` : ''}</div>`;
+  } else {
+    h += `<div class="card nokid">這個成語還沒有小學生版。下面是成語典的原文，可以請爸爸媽媽一起看。</div>`;
+  }
+  // 近義、反義放前面，方便連來連去
+  if (e.近.length || extraSyn.length || e.反.length || extraAnt.length) {
+    h += `<div class="card">`;
+    if (e.近.length || extraSyn.length) h += `<div class="lbl" style="color:var(--blue);font-weight:800;font-size:14px">🤝 意思相近</div><div class="links">${e.近.map((n) => chip(n, 'syn')).join('')}${extraSyn.map((n) => chip(n, 'syn')).join('')}</div>`;
+    if (e.反.length || extraAnt.length) h += `<div class="lbl" style="color:var(--red);font-weight:800;font-size:14px;margin-top:8px">↔️ 意思相反</div><div class="links">${e.反.map((n) => chip(n, 'ant')).join('')}${extraAnt.map((n) => chip(n, 'ant')).join('')}</div>`;
+    h += `<div class="src">可以點的會跳到那個成語；灰色的是成語典沒有收成主要條目的。</div></div>`;
+  }
+  h += `<div class="card off"><div class="lbl">📕 教育部《成語典》原文</div>
+    <h3>釋義</h3><div>${linkify(e.釋)}</div>`;
+  if (e.用.length) {
+    h += `<h3>用法和例句</h3>` + e.用.map((u, i) => `<div class="sense"><b>${e.用.length > 1 ? `意思${'一二三四五'[i] || i + 1}：` : ''}${esc(u.義)}</b>
+      <div class="cat">${esc(u.類)}</div>
+      <ul>${u.例.map((x, j) => `<li class="${j >= 3 ? 'hide xtra' : ''}">${esc(x)}</li>`).join('')}</ul>
+      ${u.例.length > 3 ? `<button class="more" onclick="this.previousElementSibling.querySelectorAll('.xtra').forEach(n=>n.classList.toggle('hide'));this.textContent=this.textContent.startsWith('看')?'收起':'看全部 ${u.例.length} 句'">看全部 ${u.例.length} 句</button>` : ''}</div>`).join('');
+  }
+  if (e.形音 || e.同 || e.異 || e.辨例.length) {
+    h += `<h3>辨識（和相近成語比一比）</h3>`;
+    if (e.形音) h += `<div>⚠️ ${linkify(e.形音)}</div>`;
+    if (e.同) h += `<div><b>相同：</b>${linkify(e.同)}</div>`;
+    if (e.異) h += `<div><b>不同：</b>${linkify(e.異)}</div>`;
+    h += cmpTable(e.辨例);
+  }
+  if (e.參.length) h += `<h3>也可以說成</h3><div class="links">${e.參.map((n) => `<span class="lk ref">${esc(n)}</span>`).join('')}</div>`;
+  if (e.典) h += `<details><summary>典故原文（給大人看）</summary><div class="src" style="margin:6px 0">出處：${esc(e.源.replace(/[＃※#*\d]/g, ' ').trim())}</div><div>${linkify(e.典)}</div></details>`;
+  h += `<p class="src">原始條目：<a href="https://dict.idioms.moe.edu.tw/idiomView.jsp?ID=${e.id}" target="_blank" rel="noopener">在成語典打開「${esc(e.w)}」</a></p></div>`;
+  h += `<div class="nav">${prev ? `<a class="back" href="#${encodeURIComponent(prev.w)}">← ${esc(prev.w)}</a>` : '<span></span>'}${next ? `<a class="back" href="#${encodeURIComponent(next.w)}">${esc(next.w)} →</a>` : ''}</div>`;
+  $('#entry').innerHTML = h;
+}
+
+function route() {
+  const w = decodeURIComponent(location.hash.slice(1));
+  const r = resolve(w);
+  if (r) {
+    $('#home').classList.add('hide'); $('#entry').classList.remove('hide');
+    renderEntry(r); document.title = `${r}｜展諒的成語`; window.scrollTo(0, 0);
+  } else {
+    $('#entry').classList.add('hide'); $('#home').classList.remove('hide'); document.title = '展諒的成語';
+  }
+}
+window.addEventListener('hashchange', route);
+$('#homeLink').addEventListener('click', (ev) => { ev.preventDefault(); history.pushState(null, '', location.pathname + location.search); route(); $('#q').focus(); });
+$('#q').addEventListener('input', renderList);
+$('#filters').addEventListener('click', (ev) => {
+  const b = ev.target.closest('.chip'); if (!b) return;
+  if (b.dataset.f === 'rand') { const pool = D.entries.filter((e) => filter !== 'kid' || K[e.w]); location.hash = encodeURIComponent(pool[Math.floor(Math.random() * pool.length)].w); return; }
+  filter = b.dataset.f;
+  document.querySelectorAll('#filters .chip').forEach((c) => c.classList.toggle('on', c === b));
+  renderList();
+});
+load().catch((err) => { $('#count').textContent = '資料載入失敗，請重新整理。' + err; });
+</script>
+</body>
+</html>
